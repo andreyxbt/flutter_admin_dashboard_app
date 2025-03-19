@@ -1,0 +1,26 @@
+/* External CSS for HeaderComponent styling */
+
+.header-container {
+  width: 100%;
+  min-width: 315px;
+  padding: 16px;
+  background-color: #ffffff;
+}
+
+.header-title {
+  font-family: 'Inter', sans-serif;
+  font-size: 32px;
+  font-weight: 700;
+  line-height: 40px;
+  color: #0D141C;
+}
+
+.header-subtitle {
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 21px;
+  color: #4F7396;
+  margin-top: 12px;
+}
+
