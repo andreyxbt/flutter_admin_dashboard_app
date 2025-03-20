@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../components/schools_table_component.dart';
+import 'package:flutter_admin_dashboard_app/ui/views/schools_table_component.dart';
 
 class SchoolsScreen extends StatefulWidget {
   const SchoolsScreen({super.key});
