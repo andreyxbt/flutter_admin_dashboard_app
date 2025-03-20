@@ -1,11 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_admin_dashboard_app/screens/placeholder_screen.dart';
+import 'package:flutter_admin_dashboard_app/screens/users_screen.dart';
 import 'package:flutter_admin_dashboard_app/ui/views/pd_companies_table_component.dart';
 import 'package:flutter_admin_dashboard_app/ui/views/schools_table_component.dart';
+import 'package:flutter_admin_dashboard_app/widgets/users_table_component.dart';
 import 'widgets/sidebar_component.dart';
 import 'widgets/header_component.dart';
 import 'widgets/search_bar_component.dart';
 import 'entities/organization.dart';
+import 'entities/school.dart';
+import 'entities/pd_company.dart';
+import 'models/navigation_item.dart';
 
 void main() {
   runApp(const MyApp());
@@ -105,11 +110,70 @@ class _MainScreenState extends State<MainScreen> {
           ),
         ],
       );
+    } else if (_selectedItem == NavigationItem.users) {
+      return Column(
+        key: ValueKey(_selectedItem),
+        children: [
+
+          Expanded(
+            child: UsersScreen(
+              users: _getMockUsers(), // We'll create this method
+            ),
+          ),
+        ],
+      );
     }
     return PlaceholderScreen(
       key: ValueKey(_selectedItem),
       title: _getTitle(_selectedItem),
     );
+  }
+
+  List<User> _getMockUsers() {
+    return [
+      User(
+        userId: '1',
+        orgId: '1',
+        name: 'John Smith',
+        email: 'john.smith@school.com',
+        organizationName: 'Acme High School',
+      ),
+      User(
+        userId: '2',
+        orgId: '2',
+        name: 'Sarah Johnson',
+        email: 'sarah.j@teachfirst.com',
+        organizationName: 'TeachFirst Solutions',
+      ),
+      User(
+        userId: '3',
+        orgId: '1',
+        name: 'Michael Brown',
+        email: 'm.brown@school.com',
+        organizationName: 'Acme High School',
+      ),
+      User(
+        userId: '4',
+        orgId: '3',
+        name: 'Emma Davis',
+        email: 'emma.d@innovateed.com',
+        organizationName: 'InnovateEd',
+      ),
+      User(
+        userId: '5',
+        orgId: '2',
+        name: 'James Wilson',
+        email: 'j.wilson@teachfirst.com',
+        organizationName: 'TeachFirst Solutions',
+      ),
+      User(
+        userId: '6',
+        orgId: '4',
+        name: 'Lisa Anderson',
+        email: 'l.anderson@globallearning.edu',
+        organizationName: 'Global Learning Institute',
+      ),
+    ];
   }
 
   void _handleAddOrganization(Organization? organization) {

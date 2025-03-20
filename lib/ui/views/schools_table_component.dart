@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import '../../widgets/organizations_table_component.dart';
-import '../../entities/organization.dart';
+import '../../entities/school.dart';
 
 class SchoolsDataProvider {
-  static final List<Organization> schools = [
+  static final List<School> schools = [
     School(
       id: '1',
       name: 'Acme High School',
@@ -76,7 +76,7 @@ class SchoolsTableComponent extends StatefulWidget {
 class SchoolsTableComponentState extends State<SchoolsTableComponent> {
   final _tableKey = GlobalKey<OrganizationsTableComponentState>();
 
-  void addSchool(Organization school) {
+  void addSchool(School school) {
     SchoolsDataProvider.schools.add(school);
     _tableKey.currentState?.updateOrganizations(SchoolsDataProvider.schools);
   }

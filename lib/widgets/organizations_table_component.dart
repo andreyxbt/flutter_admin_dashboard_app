@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../entities/organization.dart';
+import '../entities/school.dart';
+import '../entities/pd_company.dart';
 import '../screens/edit_organization_screen.dart';
 
 class OrganizationsTableComponent extends StatefulWidget {
@@ -25,31 +27,20 @@ class OrganizationsTableComponentState extends State<OrganizationsTableComponent
   void initState() {
     super.initState();
     _allOrganizations = List.from(widget.organizations);
-    _filterByType();
+    _filteredOrganizations = _allOrganizations.where((org) =>
+      widget.isSchools ? org is School : org is PDCompany
+    ).toList();
   }
 
   @override
   void didUpdateWidget(OrganizationsTableComponent oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.organizations != widget.organizations) {
+    if (oldWidget.organizations != widget.organizations || oldWidget.isSchools != widget.isSchools) {
       _allOrganizations = List.from(widget.organizations);
-    }
-    if (oldWidget.isSchools != widget.isSchools || oldWidget.organizations != widget.organizations) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) {
-          _filterByType();
-        }
-      });
-    }
-  }
-
-  void _filterByType() {
-    if (!mounted) return;
-    setState(() {
       _filteredOrganizations = _allOrganizations.where((org) =>
         widget.isSchools ? org is School : org is PDCompany
       ).toList();
-    });
+    }
   }
 
   void filterOrganizations(String query) {
@@ -88,7 +79,9 @@ class OrganizationsTableComponentState extends State<OrganizationsTableComponent
   void updateOrganizations(List<Organization> newOrganizations) {
     setState(() {
       _allOrganizations = List.from(newOrganizations);
-      _filterByType();
+      _filteredOrganizations = _allOrganizations.where((org) =>
+        widget.isSchools ? org is School : org is PDCompany
+      ).toList();
     });
   }
 

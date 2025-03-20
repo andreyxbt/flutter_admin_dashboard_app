@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import '../../widgets/organizations_table_component.dart';
-import '../../entities/organization.dart';
+import '../../entities/pd_company.dart';
 
 class PDCompaniesDataProvider {
-  static final List<Organization> companies = [
+  static final List<PDCompany> companies = [
     PDCompany(
       id: '1',
       name: 'TeachFirst Solutions',
@@ -76,7 +76,7 @@ class PDCompaniesTableComponent extends StatefulWidget {
 class PDCompaniesTableComponentState extends State<PDCompaniesTableComponent> {
   final _tableKey = GlobalKey<OrganizationsTableComponentState>();
 
-  void addCompany(Organization company) {
+  void addCompany(PDCompany company) {
     PDCompaniesDataProvider.companies.add(company);
     _tableKey.currentState?.updateOrganizations(PDCompaniesDataProvider.companies);
   }

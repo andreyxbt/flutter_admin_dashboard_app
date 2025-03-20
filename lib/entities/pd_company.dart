@@ -1,23 +1,18 @@
-class Organization {
-  final String id;
-  final String name;
-  final String description;
-  final String users;
-  final String courses;
-  final String reports;
-  final String lastUpdated;
+import 'organization.dart';
 
-  Organization({
-    required this.id,
-    required this.name,
-    this.description = '',
-    required this.users,
-    required this.courses,
-    required this.reports,
-    required this.lastUpdated,
+class PDCompany extends Organization {
+  PDCompany({
+    required super.id,
+    required super.name,
+    super.description,
+    required super.users,
+    required super.courses,
+    required super.reports,
+    required super.lastUpdated,
   });
 
-  Organization copyWith({
+  @override
+  PDCompany copyWith({
     String? id,
     String? name,
     String? description,
@@ -26,7 +21,7 @@ class Organization {
     String? reports,
     String? lastUpdated,
   }) {
-    return Organization(
+    return PDCompany(
       id: id ?? this.id,
       name: name ?? this.name,
       description: description ?? this.description,

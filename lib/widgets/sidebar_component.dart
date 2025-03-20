@@ -1,16 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_admin_dashboard_app/entities/pd_company.dart';
+import 'package:flutter_admin_dashboard_app/entities/school.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import '../entities/organization.dart';
-
-enum NavigationItem {
-  dashboard,
-  users,
-  courses,
-  assignments,
-  schools,
-  pdCompanies,
-  reports
-}
+import '../models/navigation_item.dart';
 
 class SidebarComponent extends StatelessWidget {
   final NavigationItem selectedItem;
@@ -18,11 +11,11 @@ class SidebarComponent extends StatelessWidget {
   final Function(Organization)? onAddOrganization;
 
   const SidebarComponent({
-    Key? key, 
+    super.key, 
     required this.selectedItem,
     required this.onNavigationChanged,
     this.onAddOrganization,
-  }) : super(key: key);
+  });
 
   void _showAddDialog(BuildContext context) async {
     String type = selectedItem == NavigationItem.schools ? 'School' : 'PD Company';
@@ -140,119 +133,83 @@ class SidebarComponent extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 320,
-      color: const Color(0xFFF7FAFC),
-      padding: const EdgeInsets.all(16),
+      width: 256,
+      color: Colors.white,
       child: Column(
         children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildNavItem(
-                  'Dashboard', 
-                  'assets/icons/home_icon.svg',
-                  NavigationItem.dashboard,
-                ),
-                _buildNavItem(
-                  'Users', 
-                  'assets/icons/users_icon.svg',
-                  NavigationItem.users,
-                ),
-                _buildNavItem(
-                  'Courses', 
-                  'assets/icons/courses_icon.svg',
-                  NavigationItem.courses,
-                ),
-                _buildNavItem(
-                  'Assignments', 
-                  'assets/icons/assignments_icon.svg',
-                  NavigationItem.assignments,
-                ),
-                _buildNavItem(
-                  'Schools', 
-                  'assets/icons/organisations_icon.svg',
-                  NavigationItem.schools,
-                ),
-                _buildNavItem(
-                  'PD Companies', 
-                  'assets/icons/organisations_icon.svg',
-                  NavigationItem.pdCompanies,
-                ),
-                _buildNavItem(
-                  'Reports', 
-                  'assets/icons/reports_icon.svg',
-                  NavigationItem.reports,
-                ),
-              ],
-            ),
+          const SizedBox(height: 32),
+          _buildNavigationItem(
+            NavigationItem.dashboard,
+            'Daschboard',
+            'assets/icons/home_icon.svg',
           ),
-          const SizedBox(height: 16),
-          if (selectedItem == NavigationItem.schools || selectedItem == NavigationItem.pdCompanies)
-            ElevatedButton(
-              onPressed: () => _showAddDialog(context),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF1A80E5),
-                minimumSize: const Size(double.infinity, 40),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
-              child: Text(
-                'New ${selectedItem == NavigationItem.schools ? 'School' : 'PD Company'}',
-                style: const TextStyle(
-                  color: Color(0xFFF7FAFC),
-                  fontSize: 14,
-                  fontWeight: FontWeight.w700,
-                  fontFamily: 'Inter',
-                ),
-              ),
-            ),
+          _buildNavigationItem(
+            NavigationItem.pdCompanies,
+            'PD Companies',
+            'assets/icons/organisations_icon.svg',
+          ),
+          _buildNavigationItem(
+            NavigationItem.schools,
+            'Schools',
+            'assets/icons/organisations_icon.svg',
+          ),
+          _buildNavigationItem(
+            NavigationItem.users,
+            'Users',
+            'assets/icons/users_icon.svg',
+          ),
+          _buildNavigationItem(
+            NavigationItem.courses,
+            'Courses',
+            'assets/icons/courses_icon.svg',
+          ),
+          _buildNavigationItem(
+            NavigationItem.assignments,
+            'Assignments',
+            'assets/icons/assignments_icon.svg',
+          ),
+          _buildNavigationItem(
+            NavigationItem.reports,
+            'Reports',
+            'assets/icons/reports_icon.svg',
+          ),
         ],
       ),
     );
   }
 
-  Widget _buildNavItem(String title, String? iconPath, NavigationItem item) {
+  Widget _buildNavigationItem(NavigationItem item, String title, String iconPath) {
     final isSelected = selectedItem == item;
-    
     return InkWell(
       onTap: () => onNavigationChanged(item),
       child: Container(
-        margin: const EdgeInsets.symmetric(vertical: 4),
+        height: 40,
+        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+        padding: const EdgeInsets.symmetric(horizontal: 12),
         decoration: BoxDecoration(
-          color: isSelected ? const Color(0xFFE8EDF2) : Colors.transparent,
-          borderRadius: BorderRadius.circular(12),
+          color: isSelected ? const Color(0xFFF0F4F9) : Colors.transparent,
+          borderRadius: BorderRadius.circular(8),
         ),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-          child: Row(
-            children: [
-              if (iconPath != null)
-                SvgPicture.asset(
-                  iconPath,
-                  width: 24,
-                  height: 24,
-                  colorFilter: const ColorFilter.mode(Color(0xFF0D141C), BlendMode.srcIn),
-                )
-              else
-                const Icon(
-                  Icons.circle,
-                  size: 24,
-                  color: Color(0xFF0D141C),
-                ),
-              const SizedBox(width: 12),
-              Text(
-                title,
-                style: const TextStyle(
-                  color: Color(0xFF0D141C),
-                  fontSize: 14,
-                  fontWeight: FontWeight.w500,
-                  fontFamily: 'Inter',
-                ),
+        child: Row(
+          children: [
+            SvgPicture.asset(
+              iconPath,
+              colorFilter: ColorFilter.mode(
+                isSelected ? const Color(0xFF1A91F0) : const Color(0xFF4F7396),
+                BlendMode.srcIn,
               ),
-            ],
-          ),
+            ),
+            const SizedBox(width: 12),
+            Text(
+              title,
+              style: TextStyle(
+                fontFamily: 'Inter',
+                fontSize: 14,
+                fontWeight: isSelected ? FontWeight.w500 : FontWeight.w400,
+                color: isSelected ? const Color(0xFF1A91F0) : const Color(0xFF4F7396),
+              ),
+            ),
+          ],
         ),
       ),
     );
