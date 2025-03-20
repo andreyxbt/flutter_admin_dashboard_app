@@ -3,40 +3,63 @@ import '../entities/organization.dart';
 import '../screens/edit_organization_screen.dart';
 
 class OrganizationsTableComponent extends StatefulWidget {
-  const OrganizationsTableComponent({super.key});
+  final bool isSchools;
+  final List<Organization> organizations;
+
+  const OrganizationsTableComponent({
+    super.key,
+    required this.isSchools,
+    required this.organizations,
+  });
 
   @override
   State<OrganizationsTableComponent> createState() => OrganizationsTableComponentState();
 }
 
 class OrganizationsTableComponentState extends State<OrganizationsTableComponent> {
-  final List<Organization> _allOrganizations = [
-    Organization(name: 'Acme Inc.', description: 'Leading manufacturer of cartoon products', users: '2', courses: '3', lessons: '4', quizzes: '5', assignments: '6', reports: '7', lastUpdated: '8'),
-    Organization(name: 'Widgets Co.', description: 'Premium widget solutions', users: '2', courses: '3', lessons: '4', quizzes: '5', assignments: '6', reports: '7', lastUpdated: '8'),
-    Organization(name: 'Globex Corp.', users: '2', courses: '3', lessons: '4', quizzes: '5', assignments: '6', reports: '7', lastUpdated: '8'),
-    Organization(name: 'Initech LLC.', users: '2', courses: '3', lessons: '4', quizzes: '5', assignments: '6', reports: '7', lastUpdated: '8'),
-    Organization(name: 'Umbrella Corp.', users: '2', courses: '3', lessons: '4', quizzes: '5', assignments: '6', reports: '7', lastUpdated: '8'),
-    Organization(name: 'Soylent Green', users: '2', courses: '3', lessons: '4', quizzes: '5', assignments: '6', reports: '7', lastUpdated: '8'),
-    Organization(name: 'Cyberdyne Systems', users: '2', courses: '3', lessons: '4', quizzes: '5', assignments: '6', reports: '7', lastUpdated: '8'),
-    Organization(name: 'Tyrell Corporation', users: '2', courses: '3', lessons: '4', quizzes: '5', assignments: '6', reports: '7', lastUpdated: '8'),
-    Organization(name: 'Gringotts Bank', users: '2', courses: '3', lessons: '4', quizzes: '5', assignments: '6', reports: '7', lastUpdated: '8'),
-    Organization(name: 'Wonka Industries', users: '2', courses: '3', lessons: '4', quizzes: '5', assignments: '6', reports: '7', lastUpdated: '8'),
-  ];
-  
+  late List<Organization> _allOrganizations;
   List<Organization> _filteredOrganizations = [];
   String _searchQuery = '';
 
   @override
   void initState() {
     super.initState();
-    _filteredOrganizations = _allOrganizations;
+    _allOrganizations = List.from(widget.organizations);
+    _filterByType();
+  }
+
+  @override
+  void didUpdateWidget(OrganizationsTableComponent oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.organizations != widget.organizations) {
+      _allOrganizations = List.from(widget.organizations);
+    }
+    if (oldWidget.isSchools != widget.isSchools || oldWidget.organizations != widget.organizations) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          _filterByType();
+        }
+      });
+    }
+  }
+
+  void _filterByType() {
+    if (!mounted) return;
+    setState(() {
+      _filteredOrganizations = _allOrganizations.where((org) =>
+        widget.isSchools ? org is School : org is PDCompany
+      ).toList();
+    });
   }
 
   void filterOrganizations(String query) {
+    if (!mounted) return;
     setState(() {
       _searchQuery = query.toLowerCase();
       _filteredOrganizations = _allOrganizations
-          .where((org) => org.name.toLowerCase().contains(_searchQuery))
+          .where((org) => 
+            (widget.isSchools ? org is School : org is PDCompany) &&
+            org.name.toLowerCase().contains(_searchQuery))
           .toList();
     });
   }
@@ -59,6 +82,13 @@ class OrganizationsTableComponentState extends State<OrganizationsTableComponent
       if (filteredIndex != -1) {
         _filteredOrganizations[filteredIndex] = newOrg;
       }
+    });
+  }
+
+  void updateOrganizations(List<Organization> newOrganizations) {
+    setState(() {
+      _allOrganizations = List.from(newOrganizations);
+      _filterByType();
     });
   }
 
@@ -107,9 +137,6 @@ class OrganizationsTableComponentState extends State<OrganizationsTableComponent
           _buildHeaderCell('Name', flex: 2),
           _buildHeaderCell('Users'),
           _buildHeaderCell('Courses'),
-          _buildHeaderCell('Lessons'),
-          _buildHeaderCell('Quizzes'),
-          _buildHeaderCell('Assignments', flex: 2),
           _buildHeaderCell('Reports'),
           _buildHeaderCell('Last updated', flex: 2),
           _buildHeaderCell('Actions'),
@@ -151,9 +178,6 @@ class OrganizationsTableComponentState extends State<OrganizationsTableComponent
           _buildCell(org.name, flex: 2, isName: true),
           _buildCell(org.users),
           _buildCell(org.courses),
-          _buildCell(org.lessons),
-          _buildCell(org.quizzes),
-          _buildCell(org.assignments, flex: 2),
           _buildCell(org.reports),
           _buildCell(org.lastUpdated, flex: 2),
           Expanded(
