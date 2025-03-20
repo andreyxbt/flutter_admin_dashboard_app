@@ -85,7 +85,6 @@ class SchoolsTableComponentState extends State<SchoolsTableComponent> {
   Widget build(BuildContext context) {
     return OrganizationsTableComponent(
       key: _tableKey,
-      isSchools: true,
       organizations: SchoolsDataProvider.schools,
     );
   }

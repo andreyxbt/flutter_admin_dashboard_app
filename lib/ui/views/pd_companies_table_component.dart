@@ -85,7 +85,6 @@ class PDCompaniesTableComponentState extends State<PDCompaniesTableComponent> {
   Widget build(BuildContext context) {
     return OrganizationsTableComponent(
       key: _tableKey,
-      isSchools: false,
       organizations: PDCompaniesDataProvider.companies,
     );
   }
