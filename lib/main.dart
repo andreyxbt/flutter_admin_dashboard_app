@@ -1,16 +1,17 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_admin_dashboard_app/screens/placeholder_screen.dart';
-import 'package:flutter_admin_dashboard_app/screens/users_screen.dart';
-import 'package:flutter_admin_dashboard_app/ui/views/pd_companies_table_component.dart';
-import 'package:flutter_admin_dashboard_app/ui/views/schools_table_component.dart';
-import 'package:flutter_admin_dashboard_app/widgets/users_table_component.dart';
-import 'widgets/sidebar_component.dart';
-import 'widgets/header_component.dart';
-import 'widgets/search_bar_component.dart';
-import 'entities/organization.dart';
-import 'entities/school.dart';
-import 'entities/pd_company.dart';
+import 'package:provider/provider.dart';
 import 'models/navigation_item.dart';
+import 'models/school_model.dart';
+import 'models/pd_company_model.dart';
+import 'models/user_model.dart';
+import 'repositories/school_repository.dart';
+import 'repositories/pd_company_repository.dart';
+import 'repositories/user_repository.dart';
+import 'widgets/sidebar_component.dart';
+import 'ui/views/schools_table_component.dart';
+import 'ui/views/pd_companies_table_component.dart';
+import 'ui/views/users_table_component.dart';
+import 'screens/placeholder_screen.dart';
 
 void main() {
   runApp(const MyApp());
@@ -21,23 +22,45 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(
-      home: MainScreen(),
+    return MaterialApp(
+      title: 'Admin Dashboard',
+      theme: ThemeData(
+        primarySwatch: Colors.blue,
+        scaffoldBackgroundColor: const Color(0xFFF7FAFC),
+      ),
+      home: MultiProvider(
+        providers: [
+          ChangeNotifierProvider(
+            create: (_) => SchoolModel(InMemorySchoolRepository()),
+          ),
+          ChangeNotifierProvider(
+            create: (_) => PDCompanyModel(InMemoryPDCompanyRepository()),
+          ),
+          ChangeNotifierProvider(
+            create: (_) => UserModel(InMemoryUserRepository()),
+          ),
+        ],
+        child: const DashboardScreen(),
+      ),
     );
   }
 }
 
-class MainScreen extends StatefulWidget {
-  const MainScreen({super.key});
+class DashboardScreen extends StatefulWidget {
+  const DashboardScreen({super.key});
 
   @override
-  State<MainScreen> createState() => _MainScreenState();
+  State<DashboardScreen> createState() => _DashboardScreenState();
 }
 
-class _MainScreenState extends State<MainScreen> {
+class _DashboardScreenState extends State<DashboardScreen> {
   NavigationItem _selectedItem = NavigationItem.dashboard;
-  final _schoolsTableKey = GlobalKey<SchoolsTableComponentState>();
-  final _pdCompaniesTableKey = GlobalKey<PDCompaniesTableComponentState>();
+
+  void _onNavigationChanged(NavigationItem item) {
+    setState(() {
+      _selectedItem = item;
+    });
+  }
 
   String _getTitle(NavigationItem item) {
     switch (item) {
@@ -78,111 +101,21 @@ class _MainScreenState extends State<MainScreen> {
   }
 
   Widget _buildContent() {
-    if (_selectedItem == NavigationItem.schools) {
-      return Column(
-        key: ValueKey(_selectedItem),
-        children: [
-          SearchBarComponent(
-            key: const ValueKey('search_schools'),
-            hintText: 'Search schools',
-            onSearch: (query) => _schoolsTableKey.currentState?.onSearch(query),
-          ),
-          Expanded(
-            child: SchoolsTableComponent(
-              key: _schoolsTableKey,
-            ),
-          ),
-        ],
-      );
-    } else if (_selectedItem == NavigationItem.pdCompanies) {
-      return Column(
-        key: ValueKey(_selectedItem),
-        children: [
-          SearchBarComponent(
-            key: const ValueKey('search_pd_companies'),
-            hintText: 'Search PD companies',
-            onSearch: (query) => _pdCompaniesTableKey.currentState?.onSearch(query),
-          ),
-          Expanded(
-            child: PDCompaniesTableComponent(
-              key: _pdCompaniesTableKey,
-            ),
-          ),
-        ],
-      );
-    } else if (_selectedItem == NavigationItem.users) {
-      return Column(
-        key: ValueKey(_selectedItem),
-        children: [
-
-          Expanded(
-            child: UsersScreen(
-              users: _getMockUsers(), // We'll create this method
-            ),
-          ),
-        ],
-      );
-    }
-    return PlaceholderScreen(
-      key: ValueKey(_selectedItem),
-      title: _getTitle(_selectedItem),
-    );
-  }
-
-  List<User> _getMockUsers() {
-    return [
-      User(
-        userId: '1',
-        orgId: '1',
-        name: 'John Smith',
-        email: 'john.smith@school.com',
-        organizationName: 'Acme High School',
-      ),
-      User(
-        userId: '2',
-        orgId: '2',
-        name: 'Sarah Johnson',
-        email: 'sarah.j@teachfirst.com',
-        organizationName: 'TeachFirst Solutions',
-      ),
-      User(
-        userId: '3',
-        orgId: '1',
-        name: 'Michael Brown',
-        email: 'm.brown@school.com',
-        organizationName: 'Acme High School',
-      ),
-      User(
-        userId: '4',
-        orgId: '3',
-        name: 'Emma Davis',
-        email: 'emma.d@innovateed.com',
-        organizationName: 'InnovateEd',
-      ),
-      User(
-        userId: '5',
-        orgId: '2',
-        name: 'James Wilson',
-        email: 'j.wilson@teachfirst.com',
-        organizationName: 'TeachFirst Solutions',
-      ),
-      User(
-        userId: '6',
-        orgId: '4',
-        name: 'Lisa Anderson',
-        email: 'l.anderson@globallearning.edu',
-        organizationName: 'Global Learning Institute',
-      ),
-    ];
-  }
-
-  void _handleAddOrganization(Organization? organization) {
-    if (organization == null) return;
-
-    if (organization is School) {
-      _schoolsTableKey.currentState?.addSchool(organization);
-    } else if (organization is PDCompany) {
-      _pdCompaniesTableKey.currentState?.addCompany(organization);
+    switch (_selectedItem) {
+      case NavigationItem.users:
+        return const Expanded(
+          child: UsersTableComponent(),
+        );
+      case NavigationItem.schools:
+        return const Expanded(
+          child: SchoolsTableComponent(),
+        );
+      case NavigationItem.pdCompanies:
+        return const Expanded(
+          child: PDCompaniesTableComponent(),
+        );
+      default:
+        return PlaceholderScreen(title: _getTitle(_selectedItem));
     }
   }
 
@@ -193,23 +126,38 @@ class _MainScreenState extends State<MainScreen> {
         children: [
           SidebarComponent(
             selectedItem: _selectedItem,
-            onNavigationChanged: (item) {
-              setState(() {
-                _selectedItem = item;
-              });
-            },
-            onAddOrganization: _handleAddOrganization,
+            onNavigationChanged: _onNavigationChanged,
           ),
           Expanded(
             child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                HeaderComponent(
-                  title: _getTitle(_selectedItem),
-                  subtitle: _getSubtitle(_selectedItem),
+                Padding(
+                  padding: const EdgeInsets.all(32),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        _getTitle(_selectedItem),
+                        style: const TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        _getSubtitle(_selectedItem),
+                        style: const TextStyle(
+                          fontSize: 14,
+                          color: Color(0xFF64748B),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
                 Expanded(
-                  child: AnimatedSwitcher(
-                    duration: const Duration(milliseconds: 300),
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(32, 0, 32, 32),
                     child: _buildContent(),
                   ),
                 ),

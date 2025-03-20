@@ -1,13 +1,16 @@
 import 'package:flutter/material.dart';
 import '../entities/organization.dart';
-import '../screens/edit_organization_screen.dart';
 
 class OrganizationsTableComponent extends StatefulWidget {
   final List<Organization> organizations;
+  final Function(String)? onDelete;
+  final Function(Organization)? onEdit;
 
   const OrganizationsTableComponent({
     super.key,
     required this.organizations,
+    this.onDelete,
+    this.onEdit,
   });
 
   @override
@@ -15,73 +18,30 @@ class OrganizationsTableComponent extends StatefulWidget {
 }
 
 class OrganizationsTableComponentState extends State<OrganizationsTableComponent> {
-  late List<Organization> _allOrganizations;
-  List<Organization> _filteredOrganizations = [];
+  late List<Organization> _filteredOrganizations;
   String _searchQuery = '';
 
   @override
   void initState() {
     super.initState();
-    _allOrganizations = List.from(widget.organizations);
-    _filteredOrganizations = _allOrganizations;
+    _filteredOrganizations = widget.organizations;
   }
 
   @override
   void didUpdateWidget(OrganizationsTableComponent oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.organizations != widget.organizations) {
-      _allOrganizations = List.from(widget.organizations);
-      _filteredOrganizations = _allOrganizations;
+      _filterOrganizations(_searchQuery);
     }
   }
 
-  void filterOrganizations(String query) {
-    if (!mounted) return;
-    setState(() {
-      _searchQuery = query.toLowerCase();
-      _filteredOrganizations = _allOrganizations
-          .where((org) => 
-            org.name.toLowerCase().contains(_searchQuery))
-          .toList();
-    });
-  }
-
-  void _deleteOrganization(Organization org) {
-    setState(() {
-      _allOrganizations.remove(org);
-      _filteredOrganizations.remove(org);
-    });
-  }
-
-  void _editOrganization(Organization oldOrg, Organization newOrg) {
-    setState(() {
-      final index = _allOrganizations.indexOf(oldOrg);
-      if (index != -1) {
-        _allOrganizations[index] = newOrg;
-      }
-      
-      final filteredIndex = _filteredOrganizations.indexOf(oldOrg);
-      if (filteredIndex != -1) {
-        _filteredOrganizations[filteredIndex] = newOrg;
-      }
-    });
-  }
-
-  void updateOrganizations(List<Organization> newOrganizations) {
-    setState(() {
-      _allOrganizations = List.from(newOrganizations);
-      _filteredOrganizations = _allOrganizations;
-    });
-  }
-
-  Future<void> _showEditDialog(Organization org) async {
-    await showDialog(
-      context: context,
-      builder: (context) => EditOrganizationScreen(
-        organization: org,
-        onSave: (updatedOrg) => _editOrganization(org, updatedOrg),
-      ),
-    );
+  void _filterOrganizations(String query) {
+    _searchQuery = query.toLowerCase();
+    _filteredOrganizations = widget.organizations.where((org) {
+      return org.name.toLowerCase().contains(_searchQuery) ||
+          (org.description.toLowerCase().contains(_searchQuery));
+    }).toList();
+    setState(() {});
   }
 
   @override
@@ -111,8 +71,8 @@ class OrganizationsTableComponentState extends State<OrganizationsTableComponent
   Widget _buildHeader() {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 12),
-      decoration: BoxDecoration(
-        color: const Color(0xFFF7FAFC),
+      decoration: const BoxDecoration(
+        color: Color(0xFFF7FAFC),
       ),
       child: Row(
         children: [
@@ -171,12 +131,12 @@ class OrganizationsTableComponentState extends State<OrganizationsTableComponent
                 children: [
                   IconButton(
                     icon: const Icon(Icons.edit_outlined, color: Color(0xFF4F7396)),
-                    onPressed: () => _showEditDialog(org),
+                    onPressed: widget.onEdit != null ? () => widget.onEdit!(org) : null,
                     tooltip: 'Edit organization',
                   ),
                   IconButton(
                     icon: const Icon(Icons.delete_outline, color: Color(0xFF4F7396)),
-                    onPressed: () => _showDeleteConfirmation(org),
+                    onPressed: widget.onDelete != null ? () => _showDeleteConfirmation(org) : null,
                     tooltip: 'Delete organization',
                   ),
                 ],
@@ -195,42 +155,64 @@ class OrganizationsTableComponentState extends State<OrganizationsTableComponent
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         height: 72,
         alignment: Alignment.centerLeft,
-        child: Text(
-          text,
-          style: TextStyle(
-            fontFamily: 'Inter',
-            fontSize: 14,
-            fontWeight: FontWeight.w400,
-            color: isName ? const Color(0xFF0D141C) : const Color(0xFF4F7396),
-          ),
+        child: Row(
+          children: [
+            if (isName) ...[
+              CircleAvatar(
+                backgroundColor: const Color(0xFFF0F4F9),
+                child: Text(
+                  text.isNotEmpty ? text[0].toUpperCase() : '?',
+                  style: const TextStyle(
+                    color: Color(0xFF4F7396),
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+            ],
+            Expanded(
+              child: Text(
+                text,
+                style: TextStyle(
+                  fontFamily: 'Inter',
+                  fontSize: 14,
+                  fontWeight: FontWeight.w400,
+                  color: isName ? const Color(0xFF0D141C) : const Color(0xFF4F7396),
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );
   }
 
   Future<void> _showDeleteConfirmation(Organization org) async {
-    return showDialog<void>(
+    final shouldDelete = await showDialog<bool>(
       context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Delete Organization'),
-          content: Text('Are you sure you want to delete ${org.name}?'),
-          actions: <Widget>[
-            TextButton(
-              child: const Text('Cancel'),
-              onPressed: () => Navigator.of(context).pop(),
-            ),
-            TextButton(
-              child: const Text('Delete'),
-              onPressed: () {
-                _deleteOrganization(org);
-                Navigator.of(context).pop();
-              },
-            ),
-          ],
-        );
-      },
+      builder: (context) => AlertDialog(
+        title: const Text('Delete Organization'),
+        content: Text('Are you sure you want to delete ${org.name}?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
     );
+
+    if (shouldDelete == true && widget.onDelete != null) {
+      widget.onDelete!(org.id);
+    }
+  }
+
+  void onSearch(String query) {
+    _filterOrganizations(query);
   }
 }
 
