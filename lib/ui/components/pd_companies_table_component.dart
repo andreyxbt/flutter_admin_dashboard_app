@@ -1,21 +1,21 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_admin_dashboard_app/ui/widgets/search_bar_component.dart';
 import 'package:provider/provider.dart';
-import '../../widgets/organizations_table_component.dart';
+import '../widgets/organizations_table_widget.dart';
+import '../widgets/search_bar_component.dart';
 import '../../entities/pd_company.dart';
 import '../../models/pd_company_model.dart';
-import 'edit_organization_dialog.dart';
-import 'add_organization_dialog.dart';
+import '../views/edit_organization_dialog.dart';
+import '../views/add_organization_dialog.dart';
 
 class PDCompaniesTableComponent extends StatefulWidget {
   const PDCompaniesTableComponent({super.key});
 
   @override
-  State<PDCompaniesTableComponent> createState() => PDCompaniesTableComponentState();
+  State<PDCompaniesTableComponent> createState() => _PDCompaniesTableComponentState();
 }
 
-class PDCompaniesTableComponentState extends State<PDCompaniesTableComponent> {
-  final _tableKey = GlobalKey<OrganizationsTableComponentState>();
+class _PDCompaniesTableComponentState extends State<PDCompaniesTableComponent> {
+  final _tableKey = GlobalKey<OrganizationsTableWidgetState>();
 
   @override
   Widget build(BuildContext context) {
@@ -47,7 +47,7 @@ class PDCompaniesTableComponentState extends State<PDCompaniesTableComponent> {
             ),
             const SizedBox(height: 16),
             Expanded(
-              child: OrganizationsTableComponent(
+              child: OrganizationsTableWidget(
                 key: _tableKey,
                 organizations: model.companies,
                 onDelete: (id) => model.deleteCompany(id),

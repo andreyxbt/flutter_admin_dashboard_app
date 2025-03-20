@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../entities/organization.dart';
+import '../../entities/organization.dart';
 
 class EditOrganizationScreen extends StatefulWidget {
   final Organization organization;

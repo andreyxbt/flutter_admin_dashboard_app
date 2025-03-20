@@ -1,12 +1,16 @@
 import 'package:flutter/material.dart';
-import '../entities/school.dart';
+import '../../entities/organization.dart';
+import '../../entities/school.dart';
+import '../../entities/pd_company.dart';
 
-class AddSchoolDialog extends StatelessWidget {
-  final Function(School) onAdd;
+class AddOrganizationDialog extends StatelessWidget {
+  final Function(Organization) onAdd;
+  final String organizationType;
 
-  const AddSchoolDialog({
+  const AddOrganizationDialog({
     super.key,
     required this.onAdd,
+    required this.organizationType,
   });
 
   @override
@@ -18,24 +22,26 @@ class AddSchoolDialog extends StatelessWidget {
     final reportsController = TextEditingController();
 
     return AlertDialog(
-      title: const Text('Add New School'),
+      title: Text('Add New $organizationType'),
       content: SingleChildScrollView(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             TextField(
               controller: nameController,
-              decoration: const InputDecoration(
+              decoration: InputDecoration(
                 labelText: 'Name*',
-                hintText: 'Enter school name',
+                hintText: 'Enter ${organizationType.toLowerCase()} name',
+                border: const OutlineInputBorder(),
               ),
             ),
             const SizedBox(height: 16),
             TextField(
               controller: descriptionController,
-              decoration: const InputDecoration(
+              decoration: InputDecoration(
                 labelText: 'Description',
-                hintText: 'Enter school description',
+                hintText: 'Enter ${organizationType.toLowerCase()} description',
+                border: const OutlineInputBorder(),
               ),
               maxLines: 3,
             ),
@@ -45,6 +51,7 @@ class AddSchoolDialog extends StatelessWidget {
               decoration: const InputDecoration(
                 labelText: 'Users*',
                 hintText: 'Enter number of users',
+                border: OutlineInputBorder(),
               ),
               keyboardType: TextInputType.number,
             ),
@@ -54,6 +61,7 @@ class AddSchoolDialog extends StatelessWidget {
               decoration: const InputDecoration(
                 labelText: 'Courses*',
                 hintText: 'Enter number of courses',
+                border: OutlineInputBorder(),
               ),
               keyboardType: TextInputType.number,
             ),
@@ -63,6 +71,7 @@ class AddSchoolDialog extends StatelessWidget {
               decoration: const InputDecoration(
                 labelText: 'Reports*',
                 hintText: 'Enter number of reports',
+                border: OutlineInputBorder(),
               ),
               keyboardType: TextInputType.number,
             ),
@@ -74,7 +83,7 @@ class AddSchoolDialog extends StatelessWidget {
           onPressed: () => Navigator.of(context).pop(),
           child: const Text('Cancel'),
         ),
-        TextButton(
+        ElevatedButton(
           onPressed: () {
             if (nameController.text.isEmpty || 
                 usersController.text.isEmpty ||
@@ -86,20 +95,36 @@ class AddSchoolDialog extends StatelessWidget {
               return;
             }
 
-            final newSchool = School(
-              id: DateTime.now().millisecondsSinceEpoch.toString(),
-              name: nameController.text,
-              description: descriptionController.text,
-              users: usersController.text,
-              courses: coursesController.text,
-              reports: reportsController.text,
-              lastUpdated: DateTime.now().toIso8601String().split('T')[0],
-            );
+            final newOrg = organizationType == 'School'
+                ? School(
+                    id: DateTime.now().millisecondsSinceEpoch.toString(),
+                    name: nameController.text,
+                    description: descriptionController.text,
+                    users: usersController.text,
+                    courses: coursesController.text,
+                    reports: reportsController.text,
+                    lastUpdated: DateTime.now().toIso8601String().split('T')[0],
+                  )
+                : PDCompany(
+                    id: DateTime.now().millisecondsSinceEpoch.toString(),
+                    name: nameController.text,
+                    description: descriptionController.text,
+                    users: usersController.text,
+                    courses: coursesController.text,
+                    reports: reportsController.text,
+                    lastUpdated: DateTime.now().toIso8601String().split('T')[0],
+                  );
 
-            onAdd(newSchool);
+            onAdd(newOrg);
             Navigator.of(context).pop();
           },
-          child: const Text('Add'),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: const Color(0xFF1A80E5),
+          ),
+          child: const Text(
+            'Add',
+            style: TextStyle(color: Colors.white),
+          ),
         ),
       ],
     );

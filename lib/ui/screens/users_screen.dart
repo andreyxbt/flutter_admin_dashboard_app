@@ -1,17 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../widgets/users_table_widget.dart';
-import '../../widgets/search_bar_component.dart';
+import '../widgets/users_table_widget.dart';
+import '../widgets/search_bar_component.dart';
 import '../../models/user_model.dart';
 
-class UsersTableComponent extends StatefulWidget {
-  const UsersTableComponent({super.key});
+class UsersScreen extends StatefulWidget {
+  const UsersScreen({super.key});
 
   @override
-  State<UsersTableComponent> createState() => UsersTableComponentState();
+  State<UsersScreen> createState() => UsersScreenState();
 }
 
-class UsersTableComponentState extends State<UsersTableComponent> {
+class UsersScreenState extends State<UsersScreen> {
   @override
   Widget build(BuildContext context) {
     return Consumer<UserModel>(
@@ -28,7 +28,7 @@ class UsersTableComponentState extends State<UsersTableComponent> {
                   ),
                 ),
                 const SizedBox(width: 16),
-                // TODO: Add user management buttons here similar to schools and PD companies
+                // TODO: Add user management buttons here
               ],
             ),
             const SizedBox(height: 16),

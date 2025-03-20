@@ -7,10 +7,10 @@ import 'models/user_model.dart';
 import 'repositories/school_repository.dart';
 import 'repositories/pd_company_repository.dart';
 import 'repositories/user_repository.dart';
-import 'widgets/sidebar_component.dart';
-import 'ui/views/schools_table_component.dart';
-import 'ui/views/pd_companies_table_component.dart';
-import 'ui/views/users_table_component.dart';
+import 'ui/views/sidebar_component.dart';
+import 'ui/screens/schools_screen.dart';
+import 'ui/screens/pd_companies_screen.dart';
+import 'ui/screens/users_screen.dart';
 import 'screens/placeholder_screen.dart';
 
 void main() {
@@ -104,15 +104,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
     switch (_selectedItem) {
       case NavigationItem.users:
         return const Expanded(
-          child: UsersTableComponent(),
+          child: UsersScreen(),
         );
       case NavigationItem.schools:
         return const Expanded(
-          child: SchoolsTableComponent(),
+          child: SchoolsScreen(),
         );
       case NavigationItem.pdCompanies:
         return const Expanded(
-          child: PDCompaniesTableComponent(),
+          child: PDCompaniesScreen(),
         );
       default:
         return PlaceholderScreen(title: _getTitle(_selectedItem));

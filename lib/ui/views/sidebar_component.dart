@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import '../models/navigation_item.dart';
+import '../../models/navigation_item.dart';
 
 class SidebarComponent extends StatelessWidget {
   final NavigationItem selectedItem;

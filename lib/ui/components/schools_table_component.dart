@@ -1,21 +1,21 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_admin_dashboard_app/ui/widgets/search_bar_component.dart';
 import 'package:provider/provider.dart';
-import '../../widgets/organizations_table_component.dart';
+import '../widgets/organizations_table_widget.dart';
+import '../widgets/search_bar_component.dart';
 import '../../entities/school.dart';
 import '../../models/school_model.dart';
-import 'edit_organization_dialog.dart';
-import 'add_organization_dialog.dart';
+import '../views/edit_organization_dialog.dart';
+import '../views/add_organization_dialog.dart';
 
 class SchoolsTableComponent extends StatefulWidget {
   const SchoolsTableComponent({super.key});
 
   @override
-  State<SchoolsTableComponent> createState() => SchoolsTableComponentState();
+  State<SchoolsTableComponent> createState() => _SchoolsTableComponentState();
 }
 
-class SchoolsTableComponentState extends State<SchoolsTableComponent> {
-  final _tableKey = GlobalKey<OrganizationsTableComponentState>();
+class _SchoolsTableComponentState extends State<SchoolsTableComponent> {
+  final _tableKey = GlobalKey<OrganizationsTableWidgetState>();
 
   @override
   Widget build(BuildContext context) {
@@ -47,7 +47,7 @@ class SchoolsTableComponentState extends State<SchoolsTableComponent> {
             ),
             const SizedBox(height: 16),
             Expanded(
-              child: OrganizationsTableComponent(
+              child: OrganizationsTableWidget(
                 key: _tableKey,
                 organizations: model.schools,
                 onDelete: (id) => model.deleteSchool(id),

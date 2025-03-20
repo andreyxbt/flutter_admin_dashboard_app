@@ -1,14 +1,23 @@
 import 'package:flutter/material.dart';
-import '../entities/user.dart';
+import '../../entities/organization.dart';
 
-class UsersTableWidget extends StatelessWidget {
-  final List<User> users;
-
-  const UsersTableWidget({
+class OrganizationsTableWidget extends StatefulWidget {
+  final List<Organization> organizations;
+  final Function(String)? onDelete;
+  final Function(Organization)? onEdit;
+  
+  const OrganizationsTableWidget({
     super.key,
-    required this.users,
+    required this.organizations,
+    this.onDelete,
+    this.onEdit,
   });
 
+  @override
+  State<OrganizationsTableWidget> createState() => OrganizationsTableWidgetState();
+}
+
+class OrganizationsTableWidgetState extends State<OrganizationsTableWidget> {
   Widget _buildHeaderCell(String text, {int flex = 1}) {
     return Expanded(
       flex: flex,
@@ -75,14 +84,17 @@ class UsersTableWidget extends StatelessWidget {
       child: Row(
         children: [
           _buildHeaderCell('Name', flex: 2),
-          _buildHeaderCell('Email', flex: 2),
-          _buildHeaderCell('Organization', flex: 2),
+          _buildHeaderCell('Users'),
+          _buildHeaderCell('Courses'),
+          _buildHeaderCell('Reports'),
+          _buildHeaderCell('Last updated', flex: 2),
+          _buildHeaderCell('Actions'),
         ],
       ),
     );
   }
 
-  Widget _buildRow(User user) {
+  Widget _buildRow(Organization org) {
     return Container(
       decoration: const BoxDecoration(
         border: Border(
@@ -94,12 +106,59 @@ class UsersTableWidget extends StatelessWidget {
       ),
       child: Row(
         children: [
-          _buildCell(user.name, flex: 2, isName: true),
-          _buildCell(user.email, flex: 2),
-          _buildCell(user.organizationName, flex: 2),
+          _buildCell(org.name, flex: 2, isName: true),
+          _buildCell(org.users),
+          _buildCell(org.courses),
+          _buildCell(org.reports),
+          _buildCell(org.lastUpdated, flex: 2),
+          Expanded(
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              height: 72,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.edit_outlined, color: Color(0xFF4F7396)),
+                    onPressed: widget.onEdit != null ? () => widget.onEdit!(org) : null,
+                    tooltip: 'Edit organization',
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.delete_outline, color: Color(0xFF4F7396)),
+                    onPressed: widget.onDelete != null ? () => _showDeleteConfirmation(org) : null,
+                    tooltip: 'Delete organization',
+                  ),
+                ],
+              ),
+            ),
+          ),
         ],
       ),
     );
+  }
+
+  Future<void> _showDeleteConfirmation(Organization org) async {
+    final shouldDelete = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Delete Organization'),
+        content: Text('Are you sure you want to delete ${org.name}?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+
+    if (shouldDelete == true && widget.onDelete != null) {
+      widget.onDelete!(org.id);
+    }
   }
 
   @override
@@ -115,9 +174,9 @@ class UsersTableWidget extends StatelessWidget {
           _buildHeader(),
           Expanded(
             child: ListView.builder(
-              itemCount: users.length,
+              itemCount: widget.organizations.length,
               itemBuilder: (context, index) {
-                return _buildRow(users[index]);
+                return _buildRow(widget.organizations[index]);
               },
             ),
           ),

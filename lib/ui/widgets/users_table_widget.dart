@@ -1,74 +1,19 @@
 import 'package:flutter/material.dart';
+import '../../entities/user.dart';
 
-class User {
-  final String userId;
-  final String orgId;
-  final String name;
-  final String email;
-  final String organizationName;
-
-  User({
-    required this.userId,
-    required this.orgId,
-    required this.name,
-    required this.email,
-    required this.organizationName,
-  });
-}
-
-class UsersTableComponent extends StatefulWidget {
+class UsersTableWidget extends StatefulWidget {
   final List<User> users;
 
-  const UsersTableComponent({
+  const UsersTableWidget({
     super.key,
     required this.users,
   });
 
   @override
-  State<UsersTableComponent> createState() => UsersTableComponentState();
+  State<UsersTableWidget> createState() => UsersTableWidgetState();
 }
 
-class UsersTableComponentState extends State<UsersTableComponent> {
-  late List<User> _allUsers;
-  List<User> _filteredUsers = [];
-  String _searchQuery = '';
-
-  @override
-  void initState() {
-    super.initState();
-    _allUsers = List.from(widget.users);
-    _filteredUsers = _allUsers;
-  }
-
-  @override
-  void didUpdateWidget(UsersTableComponent oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (oldWidget.users != widget.users) {
-      _allUsers = List.from(widget.users);
-      filterUsers(_searchQuery);
-    }
-  }
-
-  void filterUsers(String query) {
-    if (!mounted) return;
-    setState(() {
-      _searchQuery = query.toLowerCase();
-      _filteredUsers = _allUsers
-          .where((user) =>
-              user.name.toLowerCase().contains(_searchQuery) ||
-              user.email.toLowerCase().contains(_searchQuery) ||
-              user.organizationName.toLowerCase().contains(_searchQuery))
-          .toList();
-    });
-  }
-
-  void updateUsers(List<User> newUsers) {
-    setState(() {
-      _allUsers = List.from(newUsers);
-      filterUsers(_searchQuery);
-    });
-  }
-
+class UsersTableWidgetState extends State<UsersTableWidget> {
   Widget _buildHeaderCell(String text, {int flex = 1}) {
     return Expanded(
       flex: flex,
@@ -126,6 +71,22 @@ class UsersTableComponentState extends State<UsersTableComponent> {
     );
   }
 
+  Widget _buildHeader() {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 12),
+      decoration: const BoxDecoration(
+        color: Color(0xFFF7FAFC),
+      ),
+      child: Row(
+        children: [
+          _buildHeaderCell('Name', flex: 2),
+          _buildHeaderCell('Email', flex: 2),
+          _buildHeaderCell('Organization', flex: 2),
+        ],
+      ),
+    );
+  }
+
   Widget _buildRow(User user) {
     return Container(
       decoration: const BoxDecoration(
@@ -146,22 +107,6 @@ class UsersTableComponentState extends State<UsersTableComponent> {
     );
   }
 
-  Widget _buildHeader() {
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 12),
-      decoration: const BoxDecoration(
-        color: Color(0xFFF7FAFC),
-      ),
-      child: Row(
-        children: [
-          _buildHeaderCell('Name', flex: 2),
-          _buildHeaderCell('Email', flex: 2),
-          _buildHeaderCell('Organization', flex: 2),
-        ],
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -175,9 +120,9 @@ class UsersTableComponentState extends State<UsersTableComponent> {
           _buildHeader(),
           Expanded(
             child: ListView.builder(
-              itemCount: _filteredUsers.length,
+              itemCount: widget.users.length,
               itemBuilder: (context, index) {
-                return _buildRow(_filteredUsers[index]);
+                return _buildRow(widget.users[index]);
               },
             ),
           ),
