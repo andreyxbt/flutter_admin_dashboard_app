@@ -5,6 +5,7 @@ import '../../widgets/search_bar_component.dart';
 import '../../entities/school.dart';
 import '../../models/school_model.dart';
 import '../../widgets/add_school_dialog.dart';
+import '../../screens/edit_organization_screen.dart';
 
 class SchoolsTableComponent extends StatefulWidget {
   const SchoolsTableComponent({super.key});
@@ -69,8 +70,14 @@ class SchoolsTableComponentState extends State<SchoolsTableComponent> {
   }
 
   Future<void> _showEditDialog(BuildContext context, SchoolModel model, School school) async {
-    // Edit dialog implementation here
-    // You can move the dialog logic from organizations_table_component to here
+    showDialog(
+      context: context,
+      builder: (context) => EditOrganizationScreen(
+        organization: school,
+        onSave: (org) => model.updateSchool(org as School),
+        organizationType: 'School',
+      ),
+    );
   }
 
   void onSearch(String query) {

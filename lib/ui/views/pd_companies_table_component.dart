@@ -5,6 +5,7 @@ import '../../widgets/search_bar_component.dart';
 import '../../entities/pd_company.dart';
 import '../../models/pd_company_model.dart';
 import '../../widgets/add_pd_company_dialog.dart';
+import '../../screens/edit_organization_screen.dart';
 
 class PDCompaniesTableComponent extends StatefulWidget {
   const PDCompaniesTableComponent({super.key});
@@ -69,8 +70,14 @@ class PDCompaniesTableComponentState extends State<PDCompaniesTableComponent> {
   }
 
   Future<void> _showEditDialog(BuildContext context, PDCompanyModel model, PDCompany company) async {
-    // Edit dialog implementation here
-    // You can move the dialog logic from organizations_table_component to here
+    showDialog(
+      context: context,
+      builder: (context) => EditOrganizationScreen(
+        organization: company,
+        onSave: (org) => model.updateCompany(org as PDCompany),
+        organizationType: 'PD Company',
+      ),
+    );
   }
 
   void onSearch(String query) {
