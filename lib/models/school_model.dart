@@ -15,7 +15,7 @@ class SchoolModel extends ChangeNotifier {
     ? _schools 
     : _schools.where((school) => 
         school.name.toLowerCase().contains(_searchQuery.toLowerCase()) ||
-        school.description.toLowerCase().contains(_searchQuery.toLowerCase())
+        (school.description).toLowerCase().contains(_searchQuery.toLowerCase())
       ).toList();
 
   Future<void> _loadSchools() async {
@@ -29,7 +29,11 @@ class SchoolModel extends ChangeNotifier {
   }
 
   Future<void> updateSchool(School school) async {
-    await _repository.updateSchool(school);
+    // Update the users count to reflect actual number of associated users
+    final updatedSchool = school.copyWith(
+      users: school.userCount.toString(),
+    );
+    await _repository.updateSchool(updatedSchool);
     await _loadSchools();
   }
 

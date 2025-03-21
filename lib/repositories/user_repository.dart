@@ -27,13 +27,19 @@ class InMemoryUserRepository implements UserRepository {
   ];
 
   @override
-  List<User> getUsers() => List.from(_users);
+  List<User> getUsers() { 
+    print("${this.hashCode} InMemoryUserRepository getUsers from userslist: ${_users.hashCode}");
+    return List.from(_users); 
+  }
 
   @override
   User? getUser(String id) => _users.firstWhere((user) => user.userId == id);
 
   @override
-  void addUser(User user) => _users.add(user);
+  void addUser(User user) { 
+    print("${this.hashCode} InMemoryUserRepository addUser to userslist: ${_users.hashCode}");
+    _users.add(user) ;
+  }
 
   @override
   void updateUser(User user) {

@@ -130,7 +130,7 @@ class UsersTableWidgetState extends State<UsersTableWidget> {
         children: [
           _buildCell(user.name, flex: 2, isName: true),
           _buildCell(user.email, flex: 2),
-          _buildCell(user.organizationName, flex: 2),
+          _buildCell(user.organizationName ?? "", flex: 2),
           Expanded(
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),

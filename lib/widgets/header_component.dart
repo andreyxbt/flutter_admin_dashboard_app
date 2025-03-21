@@ -23,7 +23,7 @@ class HeaderComponent extends StatelessWidget {
         children: [
           Text(
             title,
-            style: TextStyle(
+            style: const TextStyle(
               fontSize: 32,
               fontWeight: FontWeight.w700,
               fontFamily: 'Inter',
@@ -34,7 +34,7 @@ class HeaderComponent extends StatelessWidget {
           const SizedBox(height: 12), // gap between text elements
           Text(
             subtitle,
-            style: TextStyle(
+            style: const TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.w400,
               fontFamily: 'Inter',

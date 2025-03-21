@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
 import '../../entities/user.dart';
+import '../../entities/school.dart';
 
 class AddUserDialog extends StatefulWidget {
   final Function(User) onAdd;
+  final List<School> availableSchools;
 
   const AddUserDialog({
     super.key,
     required this.onAdd,
+    required this.availableSchools,
   });
 
   @override
@@ -16,13 +19,12 @@ class AddUserDialog extends StatefulWidget {
 class _AddUserDialogState extends State<AddUserDialog> {
   final _nameController = TextEditingController();
   final _emailController = TextEditingController();
-  final _orgNameController = TextEditingController();
+  School? _selectedSchool;
 
   @override
   void dispose() {
     _nameController.dispose();
     _emailController.dispose();
-    _orgNameController.dispose();
     super.dispose();
   }
 
@@ -53,13 +55,29 @@ class _AddUserDialogState extends State<AddUserDialog> {
               keyboardType: TextInputType.emailAddress,
             ),
             const SizedBox(height: 16),
-            TextField(
-              controller: _orgNameController,
+            DropdownButtonFormField<School?>(
+              value: _selectedSchool,
               decoration: const InputDecoration(
-                labelText: 'Organization*',
-                hintText: 'Enter organization name',
+                labelText: 'School (Optional)',
                 border: OutlineInputBorder(),
               ),
+              items: [
+                const DropdownMenuItem<School?>(
+                  value: null,
+                  child: Text('No School'),
+                ),
+                ...widget.availableSchools.map((school) {
+                  return DropdownMenuItem<School>(
+                    value: school,
+                    child: Text(school.name),
+                  );
+                }).toList(),
+              ],
+              onChanged: (School? value) {
+                setState(() {
+                  _selectedSchool = value;
+                });
+              },
             ),
           ],
         ),
@@ -71,9 +89,7 @@ class _AddUserDialogState extends State<AddUserDialog> {
         ),
         ElevatedButton(
           onPressed: () {
-            if (_nameController.text.isEmpty ||
-                _emailController.text.isEmpty ||
-                _orgNameController.text.isEmpty) {
+            if (_nameController.text.isEmpty || _emailController.text.isEmpty) {
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(content: Text('Please fill in all required fields')),
               );
@@ -82,10 +98,10 @@ class _AddUserDialogState extends State<AddUserDialog> {
 
             final user = User(
               userId: DateTime.now().millisecondsSinceEpoch.toString(),
-              orgId: '1', // You might want to make this dynamic based on selected organization
+              orgId: _selectedSchool?.id,
               name: _nameController.text,
               email: _emailController.text,
-              organizationName: _orgNameController.text,
+              organizationName: _selectedSchool?.name,
             );
 
             widget.onAdd(user);

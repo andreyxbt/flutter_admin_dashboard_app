@@ -1,17 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import 'models/navigation_item.dart';
-import 'models/school_model.dart';
-import 'models/pd_company_model.dart';
-import 'models/user_model.dart';
-import 'repositories/school_repository.dart';
-import 'repositories/pd_company_repository.dart';
-import 'repositories/user_repository.dart';
 import 'ui/views/sidebar_component.dart';
 import 'ui/screens/schools_screen.dart';
 import 'ui/screens/pd_companies_screen.dart';
 import 'ui/screens/users_screen.dart';
-import 'screens/placeholder_screen.dart';
+import 'ui/screens/placeholder_screen.dart';
 
 void main() {
   runApp(const MyApp());
@@ -28,20 +21,7 @@ class MyApp extends StatelessWidget {
         primarySwatch: Colors.blue,
         scaffoldBackgroundColor: const Color(0xFFF7FAFC),
       ),
-      home: MultiProvider(
-        providers: [
-          ChangeNotifierProvider(
-            create: (_) => SchoolModel(InMemorySchoolRepository()),
-          ),
-          ChangeNotifierProvider(
-            create: (_) => PDCompanyModel(InMemoryPDCompanyRepository()),
-          ),
-          ChangeNotifierProvider(
-            create: (_) => UserModel(InMemoryUserRepository()),
-          ),
-        ],
-        child: const DashboardScreen(),
-      ),
+      home: const DashboardScreen(),
     );
   }
 }
@@ -155,12 +135,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     ],
                   ),
                 ),
-                Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(32, 0, 32, 32),
-                    child: _buildContent(),
-                  ),
-                ),
+                _buildContent(),
               ],
             ),
           ),

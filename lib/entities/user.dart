@@ -1,15 +1,31 @@
 class User {
   final String userId;
-  final String orgId;
+  final String? orgId;  // Make optional
   final String name;
   final String email;
-  final String organizationName;
+  final String? organizationName;  // Make optional
 
   User({
     required this.userId,
-    required this.orgId,
+    this.orgId,  // Make optional
     required this.name,
     required this.email,
-    required this.organizationName,
+    this.organizationName,  // Make optional
   });
+
+  User copyWith({
+    String? userId,
+    String? orgId,
+    String? name,
+    String? email,
+    String? organizationName,
+  }) {
+    return User(
+      userId: userId ?? this.userId,
+      orgId: orgId ?? this.orgId,
+      name: name ?? this.name,
+      email: email ?? this.email,
+      organizationName: organizationName ?? this.organizationName,
+    );
+  }
 }
