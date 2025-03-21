@@ -28,4 +28,24 @@ class User {
       organizationName: organizationName ?? this.organizationName,
     );
   }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'userId': userId,
+      'orgId': orgId,
+      'name': name,
+      'email': email,
+      'organizationName': organizationName,
+    };
+  }
+
+  factory User.fromJson(Map<String, dynamic> json) {
+    return User(
+      userId: json['userId'] as String,
+      orgId: json['orgId'] as String?,
+      name: json['name'] as String,
+      email: json['email'] as String,
+      organizationName: json['organizationName'] as String?,
+    );
+  }
 }

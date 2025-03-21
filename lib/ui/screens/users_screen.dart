@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import '../widgets/users_table_widget.dart';
 import '../widgets/search_bar_component.dart';
 import '../../models/user_model.dart';
@@ -10,6 +9,7 @@ import '../views/add_user_dialog.dart';
 import '../views/edit_user_dialog.dart';
 import '../../repositories/school_repository.dart';
 import '../../repositories/user_repository.dart';
+import '../../services/shared_preferences_service.dart';
 
 class UsersScreen extends StatefulWidget {
   const UsersScreen({super.key});
@@ -20,18 +20,20 @@ class UsersScreen extends StatefulWidget {
 
 class UsersScreenState extends State<UsersScreen> {
   late final SchoolRepository _schoolRepository;
+  late final UserRepository _userRepository;
   List<School> _schools = [];
+  bool _initialized = false;
 
   @override
-  void initState() {
-    super.initState();
-    _initRepository();
-  }
-
-  Future<void> _initRepository() async {
-    final prefs = await SharedPreferences.getInstance();
-    _schoolRepository = CachedSchoolRepository(prefs);
-    _loadSchools();
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_initialized) {
+      _initialized = true;
+      final prefsService = Provider.of<SharedPreferencesService>(context, listen: false);
+      _schoolRepository = PersistentSchoolRepository(prefsService);
+      _userRepository = PersistentUserRepository(prefsService);
+      _loadSchools();
+    }
   }
 
   Future<void> _loadSchools() async {
@@ -50,7 +52,7 @@ class UsersScreenState extends State<UsersScreen> {
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
       create: (_) => UserModel(
-        InMemoryUserRepository(),
+        _userRepository,
         _schools,
         _updateSchool,
       ),

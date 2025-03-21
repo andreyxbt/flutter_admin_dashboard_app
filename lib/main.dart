@@ -1,13 +1,25 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:provider/provider.dart';
 import 'models/navigation_item.dart';
 import 'ui/views/sidebar_component.dart';
 import 'ui/screens/schools_screen.dart';
 import 'ui/screens/pd_companies_screen.dart';
 import 'ui/screens/users_screen.dart';
 import 'ui/screens/placeholder_screen.dart';
+import 'services/shared_preferences_service.dart';
 
-void main() {
-  runApp(const MyApp());
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  final prefs = await SharedPreferences.getInstance();
+  final prefsService = SharedPreferencesService(prefs);
+  
+  runApp(
+    Provider<SharedPreferencesService>.value(
+      value: prefsService,
+      child: const MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {

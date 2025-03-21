@@ -37,6 +37,32 @@ class School extends Organization {
     );
   }
 
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'name': name,
+      'description': description,
+      'users': users,
+      'courses': courses,
+      'reports': reports,
+      'lastUpdated': lastUpdated,
+      'userIds': userIds,
+    };
+  }
+
+  factory School.fromJson(Map<String, dynamic> json) {
+    return School(
+      id: json['id'] as String,
+      name: json['name'] as String,
+      description: json['description'] as String,
+      users: json['users'] as String,
+      courses: json['courses'] as String,
+      reports: json['reports'] as String,
+      lastUpdated: json['lastUpdated'] as String,
+      userIds: List<String>.from(json['userIds'] ?? []),
+    );
+  }
+
   void addUser(String userId) {
     if (!userIds.contains(userId)) {
       userIds.add(userId);
