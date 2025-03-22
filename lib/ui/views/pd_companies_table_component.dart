@@ -21,8 +21,8 @@ class PDCompaniesTableComponentState extends State<PDCompaniesTableComponent> {
       builder: (context, model, child) {
         return OrganizationsTableComponent(
           key: _tableKey,
-          organizations: model.companies,
-          onDelete: (id) => model.deleteCompany(id),
+          organizations: model.pdCompanies,
+          onDelete: (id) => model.deletePDCompany(id),
           onEdit: (org) => _showEditDialog(context, model, org as PDCompany),
         );
       },
@@ -34,7 +34,7 @@ class PDCompaniesTableComponentState extends State<PDCompaniesTableComponent> {
       context: context,
       builder: (context) => EditOrganizationScreen(
         organization: company,
-        onSave: (org) => model.updateCompany(org as PDCompany),
+        onSave: (org) => model.updatePDCompany(org as PDCompany),
         organizationType: 'PD Company',
       ),
     );

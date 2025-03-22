@@ -1,27 +1,49 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_admin_dashboard_app/entities/pd_company.dart';
-import 'package:flutter_admin_dashboard_app/ui/views/add_organization_dialog.dart';
 import 'package:provider/provider.dart';
+import '../../widgets/pd_companies_table_widget.dart';
+import '../widgets/search_bar_component.dart';
 import '../../models/pd_company_model.dart';
+import '../../entities/pd_company.dart';
+import '../views/add_pd_company_dialog.dart';
+import '../views/edit_pd_company_dialog.dart';
 import '../../repositories/pd_company_repository.dart';
 import '../../services/shared_preferences_service.dart';
-import '../widgets/search_bar_component.dart';
-import '../views/pd_companies_table_component.dart';
 
 class PDCompaniesScreen extends StatefulWidget {
   const PDCompaniesScreen({super.key});
 
   @override
-  State<PDCompaniesScreen> createState() => _PDCompaniesScreenState();
+  State<PDCompaniesScreen> createState() => PDCompaniesScreenState();
 }
 
-class _PDCompaniesScreenState extends State<PDCompaniesScreen> {
+class PDCompaniesScreenState extends State<PDCompaniesScreen> {
+  late final PDCompanyRepository _pdCompanyRepository;
+  bool _isLoading = true;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_isLoading) {
+      final prefsService = Provider.of<SharedPreferencesService>(context, listen: false);
+      _pdCompanyRepository = PersistentPDCompanyRepository(prefsService);
+      _initializeData();
+    }
+  }
+
+  Future<void> _initializeData() async {
+    setState(() {
+      _isLoading = false;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
-    final prefsService = Provider.of<SharedPreferencesService>(context);
-    
+    if (_isLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
     return ChangeNotifierProvider(
-      create: (_) => PDCompanyModel(PersistentPDCompanyRepository(prefsService)),
+      create: (_) => PDCompanyModel(_pdCompanyRepository),
       child: Consumer<PDCompanyModel>(
         builder: (context, model, child) {
           return Column(
@@ -37,9 +59,7 @@ class _PDCompaniesScreenState extends State<PDCompaniesScreen> {
                   ),
                   const SizedBox(width: 16),
                   ElevatedButton.icon(
-                    onPressed: () {
-                      _showAddDialog(context, model);
-                    },
+                    onPressed: () => _showAddDialog(context, model),
                     icon: const Icon(Icons.add),
                     label: const Text('Add PD Company'),
                     style: ElevatedButton.styleFrom(
@@ -51,8 +71,12 @@ class _PDCompaniesScreenState extends State<PDCompaniesScreen> {
                 ],
               ),
               const SizedBox(height: 16),
-              const Expanded(
-                child: PDCompaniesTableComponent(),
+              Expanded(
+                child: PDCompaniesTableWidget(
+                  pdCompanies: model.pdCompanies,
+                  onDelete: (id) => model.deletePDCompany(id),
+                  onEdit: (company) => _showEditDialog(context, model, company),
+                ),
               ),
             ],
           );
@@ -61,15 +85,22 @@ class _PDCompaniesScreenState extends State<PDCompaniesScreen> {
     );
   }
 
-  
   Future<void> _showAddDialog(BuildContext context, PDCompanyModel model) async {
-    showDialog(
+    await showDialog(
       context: context,
-      builder: (context) => AddOrganizationDialog(
-        onAdd: (org) => model.addCompany(org as PDCompany),
-        organizationType: 'PD Company',
+      builder: (BuildContext dialogContext) => AddPDCompanyDialog(
+        onAdd: (company) => model.addPDCompany(company),
       ),
     );
   }
 
+  Future<void> _showEditDialog(BuildContext context, PDCompanyModel model, PDCompany company) async {
+    await showDialog(
+      context: context,
+      builder: (BuildContext dialogContext) => EditPDCompanyDialog(
+        pdCompany: company,
+        onSave: (company) => model.updatePDCompany(company),
+      ),
+    );
+  }
 }

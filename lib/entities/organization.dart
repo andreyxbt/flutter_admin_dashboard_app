@@ -36,4 +36,16 @@ class Organization {
       lastUpdated: lastUpdated ?? this.lastUpdated,
     );
   }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'name': name,
+      'description': description,
+      'users': users,
+      'courses': courses,
+      'reports': reports,
+      'lastUpdated': lastUpdated,
+    };
+  }
 }

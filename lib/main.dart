@@ -6,6 +6,8 @@ import 'ui/views/sidebar_component.dart';
 import 'ui/screens/schools_screen.dart';
 import 'ui/screens/pd_companies_screen.dart';
 import 'ui/screens/users_screen.dart';
+import 'ui/screens/teachers_screen.dart';
+import 'ui/screens/content_directors_screen.dart';
 import 'ui/screens/placeholder_screen.dart';
 import 'services/shared_preferences_service.dart';
 
@@ -60,6 +62,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
         return 'Dashboard';
       case NavigationItem.users:
         return 'Users';
+      case NavigationItem.teachers:
+        return 'Teachers';
+      case NavigationItem.contentDirectors:
+        return 'Content Directors';
       case NavigationItem.courses:
         return 'Courses';
       case NavigationItem.assignments:
@@ -79,6 +85,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
         return 'Overview of system statistics';
       case NavigationItem.users:
         return 'Manage system users';
+      case NavigationItem.teachers:
+        return 'Manage teachers and their assignments';
+      case NavigationItem.contentDirectors:
+        return 'Manage content directors and their courses';
       case NavigationItem.courses:
         return 'Browse and manage courses';
       case NavigationItem.assignments:
@@ -97,6 +107,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
       case NavigationItem.users:
         return const Expanded(
           child: UsersScreen(),
+        );
+      case NavigationItem.teachers:
+        return const Expanded(
+          child: TeachersScreen(),
+        );
+      case NavigationItem.contentDirectors:
+        return const Expanded(
+          child: ContentDirectorsScreen(),
         );
       case NavigationItem.schools:
         return const Expanded(

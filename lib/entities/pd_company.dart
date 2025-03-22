@@ -1,6 +1,8 @@
 import 'organization.dart';
 
 class PDCompany extends Organization {
+  final List<String> userIds;
+
   PDCompany({
     required super.id,
     required super.name,
@@ -9,7 +11,8 @@ class PDCompany extends Organization {
     required super.courses,
     required super.reports,
     required super.lastUpdated,
-  });
+    List<String>? userIds,
+  }) : userIds = userIds ?? [];
 
   @override
   PDCompany copyWith({
@@ -20,6 +23,7 @@ class PDCompany extends Organization {
     String? courses,
     String? reports,
     String? lastUpdated,
+    List<String>? userIds,
   }) {
     return PDCompany(
       id: id ?? this.id,
@@ -29,18 +33,25 @@ class PDCompany extends Organization {
       courses: courses ?? this.courses,
       reports: reports ?? this.reports,
       lastUpdated: lastUpdated ?? this.lastUpdated,
+      userIds: userIds ?? List.from(this.userIds),
     );
   }
 
+  void addUser(String userId) {
+    if (!userIds.contains(userId)) {
+      userIds.add(userId);
+    }
+  }
+
+  void removeUser(String userId) {
+    userIds.remove(userId);
+  }
+
   Map<String, dynamic> toJson() {
+    final baseJson = super.toJson();
     return {
-      'id': id,
-      'name': name,
-      'description': description,
-      'users': users,
-      'courses': courses,
-      'reports': reports,
-      'lastUpdated': lastUpdated,
+      ...baseJson,
+      'userIds': userIds,
     };
   }
 
@@ -53,6 +64,7 @@ class PDCompany extends Organization {
       courses: json['courses'] as String,
       reports: json['reports'] as String,
       lastUpdated: json['lastUpdated'] as String,
+      userIds: List<String>.from(json['userIds'] ?? []),
     );
   }
 }

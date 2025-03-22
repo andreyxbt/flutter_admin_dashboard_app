@@ -1,45 +1,49 @@
-import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import '../entities/pd_company.dart';
 import '../repositories/pd_company_repository.dart';
 
 class PDCompanyModel extends ChangeNotifier {
   final PDCompanyRepository _repository;
-  List<PDCompany> _companies = [];
+  List<PDCompany> _pdCompanies = [];
+  List<PDCompany> _filteredCompanies = [];
   String _searchQuery = '';
 
   PDCompanyModel(this._repository) {
-    _loadCompanies();
+    _loadPDCompanies();
   }
 
-  List<PDCompany> get companies => _searchQuery.isEmpty 
-    ? _companies 
-    : _companies.where((company) => 
-        company.name.toLowerCase().contains(_searchQuery.toLowerCase()) ||
-        company.description.toLowerCase().contains(_searchQuery.toLowerCase())
-      ).toList();
+  List<PDCompany> get pdCompanies => _filteredCompanies;
 
-  Future<void> _loadCompanies() async {
-    _companies = await _repository.getCompanies();
-    notifyListeners();
-  }
-
-  Future<void> addCompany(PDCompany company) async {
-    await _repository.addCompany(company);
-    await _loadCompanies();
-  }
-
-  Future<void> updateCompany(PDCompany company) async {
-    await _repository.updateCompany(company);
-    await _loadCompanies();
-  }
-
-  Future<void> deleteCompany(String id) async {
-    await _repository.deleteCompany(id);
-    await _loadCompanies();
+  Future<void> _loadPDCompanies() async {
+    _pdCompanies = await _repository.getPDCompanies();
+    _applySearch();
   }
 
   void search(String query) {
-    _searchQuery = query;
+    _searchQuery = query.toLowerCase();
+    _applySearch();
+  }
+
+  void _applySearch() {
+    _filteredCompanies = _pdCompanies.where((company) =>
+      company.name.toLowerCase().contains(_searchQuery) ||
+      company.description.toLowerCase().contains(_searchQuery)
+    ).toList();
     notifyListeners();
+  }
+
+  Future<void> addPDCompany(PDCompany company) async {
+    await _repository.addPDCompany(company);
+    await _loadPDCompanies();
+  }
+
+  Future<void> updatePDCompany(PDCompany company) async {
+    await _repository.updatePDCompany(company);
+    await _loadPDCompanies();
+  }
+
+  Future<void> deletePDCompany(String id) async {
+    await _repository.deletePDCompany(id);
+    await _loadPDCompanies();
   }
 }
