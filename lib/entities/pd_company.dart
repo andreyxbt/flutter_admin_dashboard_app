@@ -47,6 +47,7 @@ class PDCompany extends Organization {
     userIds.remove(userId);
   }
 
+  @override
   Map<String, dynamic> toJson() {
     final baseJson = super.toJson();
     return {

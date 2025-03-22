@@ -5,7 +5,6 @@ import 'models/navigation_item.dart';
 import 'ui/views/sidebar_component.dart';
 import 'ui/screens/schools_screen.dart';
 import 'ui/screens/pd_companies_screen.dart';
-import 'ui/screens/users_screen.dart';
 import 'ui/screens/teachers_screen.dart';
 import 'ui/screens/content_directors_screen.dart';
 import 'ui/screens/placeholder_screen.dart';
@@ -60,8 +59,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
     switch (item) {
       case NavigationItem.dashboard:
         return 'Dashboard';
-      case NavigationItem.users:
-        return 'Users';
       case NavigationItem.teachers:
         return 'Teachers';
       case NavigationItem.contentDirectors:
@@ -83,8 +80,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
     switch (item) {
       case NavigationItem.dashboard:
         return 'Overview of system statistics';
-      case NavigationItem.users:
-        return 'Manage system users';
       case NavigationItem.teachers:
         return 'Manage teachers and their assignments';
       case NavigationItem.contentDirectors:
@@ -104,10 +99,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   Widget _buildContent() {
     switch (_selectedItem) {
-      case NavigationItem.users:
-        return const Expanded(
-          child: UsersScreen(),
-        );
       case NavigationItem.teachers:
         return const Expanded(
           child: TeachersScreen(),

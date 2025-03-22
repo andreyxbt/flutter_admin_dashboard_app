@@ -28,12 +28,6 @@ class SidebarComponent extends StatelessWidget {
           ),
           _buildNavigationItem(
             context,
-            NavigationItem.users,
-            'Users',
-            'assets/icons/users_icon.svg',
-          ),
-          _buildNavigationItem(
-            context,
             NavigationItem.teachers,
             'Teachers',
             'assets/icons/users_icon.svg',

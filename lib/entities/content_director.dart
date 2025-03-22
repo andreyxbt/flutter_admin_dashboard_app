@@ -1,4 +1,3 @@
-import 'organization.dart';
 
 class ContentDirector {
   final String userId;

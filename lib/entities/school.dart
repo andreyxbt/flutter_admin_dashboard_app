@@ -37,6 +37,7 @@ class School extends Organization {
     );
   }
 
+  @override
   Map<String, dynamic> toJson() {
     return {
       'id': id,

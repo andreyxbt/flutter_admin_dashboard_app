@@ -1,6 +1,5 @@
 enum NavigationItem {
   dashboard,
-  users,
   teachers,
   contentDirectors,
   courses,
