@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:provider/provider.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'models/navigation_item.dart';
 import 'ui/views/sidebar_component.dart';
 import 'ui/screens/schools_screen.dart';
@@ -8,10 +9,22 @@ import 'ui/screens/pd_companies_screen.dart';
 import 'ui/screens/teachers_screen.dart';
 import 'ui/screens/content_directors_screen.dart';
 import 'ui/screens/placeholder_screen.dart';
+import 'ui/screens/login_screen.dart';
 import 'services/shared_preferences_service.dart';
+import 'widgets/auth_wrapper.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(
+    options: const FirebaseOptions(
+      apiKey: "YOUR-API-KEY",
+      authDomain: "YOUR-AUTH-DOMAIN",
+      projectId: "YOUR-PROJECT-ID",
+      storageBucket: "YOUR-STORAGE-BUCKET",
+      messagingSenderId: "YOUR-SENDER-ID",
+      appId: "YOUR-APP-ID",
+    ),
+  );
   final prefs = await SharedPreferences.getInstance();
   final prefsService = SharedPreferencesService(prefs);
   
@@ -34,7 +47,12 @@ class MyApp extends StatelessWidget {
         primarySwatch: Colors.blue,
         scaffoldBackgroundColor: const Color(0xFFF7FAFC),
       ),
-      home: const DashboardScreen(),
+      initialRoute: '/',
+      routes: {
+        '/': (context) => AuthWrapper(child: const DashboardScreen()),
+        '/login': (context) => LoginScreen(),
+        '/dashboard': (context) => const DashboardScreen(),
+      },
     );
   }
 }
