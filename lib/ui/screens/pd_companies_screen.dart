@@ -73,7 +73,7 @@ class PDCompaniesScreenState extends State<PDCompaniesScreen> {
               const SizedBox(height: 16),
               Expanded(
                 child: PDCompaniesTableWidget(
-                  pdCompanies: model.pdCompanies,
+                  pdCompanies: model.companies,
                   onDelete: (id) => model.deletePDCompany(id),
                   onEdit: (company) => _showEditDialog(context, model, company),
                 ),

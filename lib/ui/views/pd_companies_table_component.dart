@@ -21,7 +21,7 @@ class PDCompaniesTableComponentState extends State<PDCompaniesTableComponent> {
       builder: (context, model, child) {
         return OrganizationsTableComponent(
           key: _tableKey,
-          organizations: model.pdCompanies,
+          organizations: model.companies,
           onDelete: (id) => model.deletePDCompany(id),
           onEdit: (org) => _showEditDialog(context, model, org as PDCompany),
         );

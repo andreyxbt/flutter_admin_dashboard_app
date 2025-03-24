@@ -1,157 +1,198 @@
 import 'dart:convert';
 import '../entities/pd_company.dart';
 import '../services/shared_preferences_service.dart';
+import 'base_repository.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:collection/collection.dart';
 
-abstract class PDCompanyRepository {
+abstract class PDCompanyRepository implements BaseRepository<PDCompany> {
   Future<List<PDCompany>> getPDCompanies();
   Future<PDCompany?> getPDCompany(String id);
-  Future<void> addPDCompany(PDCompany company);
+  Future<String> addPDCompany(PDCompany company);
   Future<void> updatePDCompany(PDCompany company);
   Future<void> deletePDCompany(String id);
+  Future<List<PDCompany>> searchPDCompanies(String query);
 }
 
 class PersistentPDCompanyRepository implements PDCompanyRepository {
   static const String _storageKey = 'pd_companies';
   final SharedPreferencesService _prefsService;
-  List<PDCompany> _pdCompanies = [];
+  final FirestorePDCompanyRepository _firebaseRepo;
+  List<PDCompany> _cachedCompanies = [];
   bool _initialized = false;
 
-  PersistentPDCompanyRepository(this._prefsService);
+  PersistentPDCompanyRepository(this._prefsService, this._firebaseRepo);
 
   Future<void> _ensureInitialized() async {
     if (!_initialized) {
-      await _initializeDefaultData();
+      await _loadFromCache();
       _initialized = true;
     }
   }
 
-  Future<void> _initializeDefaultData() async {
+  Future<void> _loadFromCache() async {
     final jsonStr = _prefsService.getString(_storageKey);
-    if (jsonStr == null) {
-      _pdCompanies = [
-        PDCompany(
-          id: '1',
-          name: 'Example PD Company',
-          description: 'A professional development company',
-          users: '5',
-          courses: '10',
-          reports: '15',
-          lastUpdated: DateTime.now().toIso8601String(),
-          userIds: [],
-        ),
-        PDCompany(
-          id: '2',
-          name: 'Another PD Company',
-          description: 'Another professional development company',
-          users: '3',
-          courses: '7',
-          reports: '12',
-          lastUpdated: DateTime.now().toIso8601String(),
-          userIds: [],
-        ),
-      ];
-      await _savePDCompanies();
-    } else {
+    if (jsonStr != null) {
       final jsonList = jsonDecode(jsonStr) as List;
-      _pdCompanies = jsonList.map((json) => PDCompany.fromJson(json)).toList();
+      _cachedCompanies = jsonList.map((json) => PDCompany.fromJson(json)).toList();
     }
   }
 
-  Future<void> _savePDCompanies() async {
-    final jsonList = _pdCompanies.map((company) => company.toJson()).toList();
+  Future<void> _saveToCache(List<PDCompany> companies) async {
+    final jsonList = companies.map((company) => company.toJson()).toList();
     await _prefsService.setString(_storageKey, jsonEncode(jsonList));
+    _cachedCompanies = companies;
   }
 
   @override
   Future<List<PDCompany>> getPDCompanies() async {
-    await _ensureInitialized();
-    return List.from(_pdCompanies);
-  }
-
-  @override
-  Future<PDCompany?> getPDCompany(String id) async {
-    await _ensureInitialized();
     try {
-      return _pdCompanies.firstWhere((company) => company.id == id);
-    } catch (_) {
-      return null;
+      final companies = await _firebaseRepo.getAll();
+      await _saveToCache(companies);
+      return companies;
+    } catch (e) {
+      await _ensureInitialized();
+      return List.from(_cachedCompanies);
     }
   }
 
   @override
-  Future<void> addPDCompany(PDCompany company) async {
+  Future<PDCompany?> getPDCompany(String id) async {
+    try {
+      final company = await _firebaseRepo.getById(id);
+      if (company != null) {
+        await _ensureInitialized();
+        final index = _cachedCompanies.indexWhere((c) => c.id == id);
+        if (index >= 0) {
+          _cachedCompanies[index] = company;
+        } else {
+          _cachedCompanies.add(company);
+        }
+        await _saveToCache(_cachedCompanies);
+      }
+      return company;
+    } catch (e) {
+      await _ensureInitialized();
+      return _cachedCompanies.firstWhereOrNull((c) => c.id == id);
+    }
+  }
+
+  @override
+  Future<String> addPDCompany(PDCompany company) async {
+    final id = await _firebaseRepo.add(company);
+    company = company.copyWith(id: id);
     await _ensureInitialized();
-    _pdCompanies.add(company);
-    await _savePDCompanies();
+    _cachedCompanies.add(company);
+    await _saveToCache(_cachedCompanies);
+    return id;
   }
 
   @override
   Future<void> updatePDCompany(PDCompany company) async {
+    await _firebaseRepo.update(company.id, company);
     await _ensureInitialized();
-    final index = _pdCompanies.indexWhere((c) => c.id == company.id);
-    if (index != -1) {
-      _pdCompanies[index] = company;
-      await _savePDCompanies();
+    final index = _cachedCompanies.indexWhere((c) => c.id == company.id);
+    if (index >= 0) {
+      _cachedCompanies[index] = company;
+      await _saveToCache(_cachedCompanies);
     }
   }
 
   @override
   Future<void> deletePDCompany(String id) async {
+    await _firebaseRepo.delete(id);
     await _ensureInitialized();
-    _pdCompanies.removeWhere((company) => company.id == id);
-    await _savePDCompanies();
+    _cachedCompanies.removeWhere((c) => c.id == id);
+    await _saveToCache(_cachedCompanies);
   }
+
+  @override
+  Future<List<PDCompany>> searchPDCompanies(String query) async {
+    try {
+      return await _firebaseRepo.searchPDCompanies(query);
+    } catch (e) {
+      await _ensureInitialized();
+      query = query.toLowerCase();
+      return _cachedCompanies.where((company) =>
+        company.name.toLowerCase().contains(query) ||
+        company.description.toLowerCase().contains(query)
+      ).toList();
+    }
+  }
+
+  @override
+  Future<void> clearCache() async {
+    await _prefsService.remove(_storageKey);
+    _cachedCompanies.clear();
+    _initialized = false;
+  }
+
+  @override
+  Future<List<PDCompany>> refreshFromRemote() async {
+    final companies = await _firebaseRepo.getAll();
+    await _saveToCache(companies);
+    return companies;
+  }
+
+  @override
+  Future<String> add(PDCompany item) => addPDCompany(item);
+
+  @override
+  Future<void> delete(String id) => deletePDCompany(id);
+
+  @override
+  Future<List<PDCompany>> getAll() => getPDCompanies();
+
+  @override
+  Future<PDCompany?> getById(String id) => getPDCompany(id);
+
+  @override
+  Future<void> update(String id, PDCompany item) => updatePDCompany(item);
 }
 
-class InMemoryPDCompanyRepository implements PDCompanyRepository {
-  final List<PDCompany> _companies = [
-    PDCompany(
-      id: '1',
-      name: 'TeachFirst Solutions',
-      description: 'Professional development for educators',
-      users: '50',
-      courses: '30',
-      reports: '20',
-      lastUpdated: '2023-12-01',
-    ),
-    PDCompany(
-      id: '2',
-      name: 'EduGrowth Partners',
-      description: 'Specialized teacher training',
-      users: '75',
-      courses: '40',
-      reports: '25',
-      lastUpdated: '2023-12-02',
-    ),
-  ];
-
+class FirestorePDCompanyRepository extends FirebaseRepository<PDCompany> implements PDCompanyRepository {
+  FirestorePDCompanyRepository({FirebaseFirestore? firestore}) 
+      : super(collection: 'pd_companies', firestore: firestore);
+  
   @override
-  Future<List<PDCompany>> getPDCompanies() async => List.from(_companies);
-
+  Map<String, dynamic> toMap(PDCompany company) => company.toJson();
+  
   @override
-  Future<PDCompany?> getPDCompany(String id) async {
-    try {
-      return _companies.firstWhere((company) => company.id == id);
-    } catch (_) {
-      return null;
+  PDCompany fromMap(Map<String, dynamic> map, String id) {
+    final mapCopy = Map<String, dynamic>.from(map);
+    if (mapCopy['id'] == null || mapCopy['id'] != id) {
+      mapCopy['id'] = id;
     }
+    return PDCompany.fromJson(mapCopy);
   }
-
+  
+  Future<List<PDCompany>> searchPDCompanies(String query) async {
+    query = query.toLowerCase();
+    final allCompanies = await getAll();
+    return allCompanies.where((company) =>
+      company.name.toLowerCase().contains(query) ||
+      company.description.toLowerCase().contains(query)
+    ).toList();
+  }
+  
   @override
-  Future<void> addPDCompany(PDCompany company) async {
-    _companies.add(company);
+  Future<List<PDCompany>> getPDCompanies() => getAll();
+  
+  @override
+  Future<PDCompany?> getPDCompany(String id) => getById(id);
+  
+  @override
+  Future<String> addPDCompany(PDCompany company) async {
+    return add(company);
   }
-
+  
   @override
   Future<void> updatePDCompany(PDCompany company) async {
-    final index = _companies.indexWhere((c) => c.id == company.id);
-    if (index != -1) {
-      _companies[index] = company;
-    }
+    await update(company.id, company);
   }
-
+  
   @override
   Future<void> deletePDCompany(String id) async {
-    _companies.removeWhere((company) => company.id == id);
+    await delete(id);
   }
 }

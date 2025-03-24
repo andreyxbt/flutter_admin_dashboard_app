@@ -10,6 +10,7 @@ import '../views/edit_teacher_dialog.dart';
 import '../../repositories/school_repository.dart';
 import '../../repositories/teacher_repository.dart';
 import '../../services/shared_preferences_service.dart';
+import '../../repositories/persistent_teacher_repository.dart';
 
 class TeachersScreen extends StatefulWidget {
   const TeachersScreen({super.key});

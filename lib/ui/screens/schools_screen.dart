@@ -21,7 +21,7 @@ class _SchoolsScreenState extends State<SchoolsScreen> {
     final prefsService = Provider.of<SharedPreferencesService>(context);
     
     return ChangeNotifierProvider(
-      create: (_) => SchoolModel(PersistentSchoolRepository(prefsService)),
+      create: (_) => SchoolModel(FirestoreSchoolRepository(prefsService)),
       child: Consumer<SchoolModel>(
         builder: (context, model, child) {
           return Column(

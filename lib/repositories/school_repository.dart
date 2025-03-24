@@ -1,129 +1,193 @@
 import 'dart:convert';
 import '../entities/school.dart';
 import '../services/shared_preferences_service.dart';
+import 'base_repository.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:collection/collection.dart';
 
-abstract class SchoolRepository {
+abstract class SchoolRepository implements BaseRepository<School> {
   Future<List<School>> getSchools();
-  Future<void> addSchool(School school);
+  Future<School?> getSchool(String id);
+  Future<String> addSchool(School school);
   Future<void> updateSchool(School school);
   Future<void> deleteSchool(String id);
+  Future<List<School>> getSchoolsByDistrict(String districtId);
 }
 
 class PersistentSchoolRepository implements SchoolRepository {
   static const String _storageKey = 'schools';
   final SharedPreferencesService _prefsService;
-  
-  PersistentSchoolRepository(this._prefsService) {
-    _initializeDefaultData();
-  }
+  final FirestoreSchoolRepository _firebaseRepo;
+  List<School> _cachedSchools = [];
+  bool _initialized = false;
 
-  Future<void> _initializeDefaultData() async {
-    if (_prefsService.getString(_storageKey) == null) {
-      final defaultSchools = [
-        School(
-          id: '1',
-          name: 'Acme High School',
-          description: 'Leading high school for cartoon physics',
-          users: '150',
-          courses: '25',
-          reports: '45',
-          lastUpdated: '2023-12-01',
-        ),
-        School(
-          id: '2',
-          name: 'Springfield Elementary',
-          description: 'Elementary school with character',
-          users: '200',
-          courses: '15',
-          reports: '30',
-          lastUpdated: '2023-12-02',
-        ),
-      ];
-      
-      await _saveSchools(defaultSchools);
+  PersistentSchoolRepository(this._prefsService, this._firebaseRepo);
+
+  Future<void> _ensureInitialized() async {
+    if (!_initialized) {
+      await _loadFromCache();
+      _initialized = true;
     }
   }
 
-  Future<void> _saveSchools(List<School> schools) async {
-    final jsonData = schools.map((school) => school.toJson()).toList();
-    await _prefsService.setString(_storageKey, jsonEncode(jsonData));
+  Future<void> _loadFromCache() async {
+    final jsonStr = _prefsService.getString(_storageKey);
+    if (jsonStr != null) {
+      final jsonList = jsonDecode(jsonStr) as List;
+      _cachedSchools = jsonList.map((json) => School.fromJson(json)).toList();
+    }
+  }
+
+  Future<void> _saveToCache(List<School> schools) async {
+    final jsonList = schools.map((school) => school.toJson()).toList();
+    await _prefsService.setString(_storageKey, jsonEncode(jsonList));
+    _cachedSchools = schools;
   }
 
   @override
   Future<List<School>> getSchools() async {
-    final jsonStr = _prefsService.getString(_storageKey);
-    if (jsonStr == null) return [];
-    
-    final jsonData = jsonDecode(jsonStr) as List;
-    return jsonData.map((json) => School.fromJson(json)).toList();
+    try {
+      final schools = await _firebaseRepo.getAll();
+      await _saveToCache(schools);
+      return schools;
+    } catch (e) {
+      await _ensureInitialized();
+      return List.from(_cachedSchools);
+    }
   }
 
   @override
-  Future<void> addSchool(School school) async {
-    final schools = await getSchools();
-    schools.add(school);
-    await _saveSchools(schools);
+  Future<School?> getSchool(String id) async {
+    try {
+      final school = await _firebaseRepo.getById(id);
+      if (school != null) {
+        await _ensureInitialized();
+        final index = _cachedSchools.indexWhere((s) => s.id == id);
+        if (index >= 0) {
+          _cachedSchools[index] = school;
+        } else {
+          _cachedSchools.add(school);
+        }
+        await _saveToCache(_cachedSchools);
+      }
+      return school;
+    } catch (e) {
+      await _ensureInitialized();
+      return _cachedSchools.firstWhereOrNull((s) => s.id == id);
+    }
+  }
+
+  @override
+  Future<String> addSchool(School school) async {
+    final id = await _firebaseRepo.add(school);
+    school = school.copyWith(id: id);
+    await _ensureInitialized();
+    _cachedSchools.add(school);
+    await _saveToCache(_cachedSchools);
+    return id;
   }
 
   @override
   Future<void> updateSchool(School school) async {
-    final schools = await getSchools();
-    final index = schools.indexWhere((s) => s.id == school.id);
-    if (index != -1) {
-      schools[index] = school;
-      await _saveSchools(schools);
+    await _firebaseRepo.update(school.id, school);
+    await _ensureInitialized();
+    final index = _cachedSchools.indexWhere((s) => s.id == school.id);
+    if (index >= 0) {
+      _cachedSchools[index] = school;
+      await _saveToCache(_cachedSchools);
     }
   }
 
   @override
   Future<void> deleteSchool(String id) async {
-    final schools = await getSchools();
-    schools.removeWhere((school) => school.id == id);
-    await _saveSchools(schools);
+    await _firebaseRepo.delete(id);
+    await _ensureInitialized();
+    _cachedSchools.removeWhere((s) => s.id == id);
+    await _saveToCache(_cachedSchools);
   }
+
+  @override
+  Future<List<School>> getSchoolsByDistrict(String districtId) async {
+    try {
+      return await _firebaseRepo.getSchoolsByDistrict(districtId);
+    } catch (e) {
+      await _ensureInitialized();
+      return _cachedSchools.where((school) => school.districtId == districtId).toList();
+    }
+  }
+
+  @override
+  Future<void> clearCache() async {
+    await _prefsService.remove(_storageKey);
+    _cachedSchools.clear();
+    _initialized = false;
+  }
+
+  @override
+  Future<List<School>> refreshFromRemote() async {
+    final schools = await _firebaseRepo.getAll();
+    await _saveToCache(schools);
+    return schools;
+  }
+
+  @override
+  Future<String> add(School item) => _firebaseRepo.add(item);
+
+  @override
+  Future<void> delete(String id) => deleteSchool(id);
+
+  @override
+  Future<List<School>> getAll() => getSchools();
+
+  @override
+  Future<School?> getById(String id) => getSchool(id);
+
+  @override
+  Future<void> update(String id, School item) => updateSchool(item);
 }
 
-class InMemorySchoolRepository implements SchoolRepository {
-  final List<School> _schools = [
-    School(
-      id: '1',
-      name: 'Acme High School',
-      description: 'Leading high school for cartoon physics',
-      users: '150',
-      courses: '25',
-      reports: '45',
-      lastUpdated: '2023-12-01',
-    ),
-    School(
-      id: '2',
-      name: 'Springfield Elementary',
-      description: 'Elementary school with character',
-      users: '200',
-      courses: '15',
-      reports: '30',
-      lastUpdated: '2023-12-02',
-    ),
-    // Add more initial schools as needed
-  ];
-
+class FirestoreSchoolRepository extends FirebaseRepository<School> implements SchoolRepository {
+  FirestoreSchoolRepository({FirebaseFirestore? firestore}) 
+      : super(collection: 'schools', firestore: firestore);
+  
   @override
-  Future<List<School>> getSchools() async => List.from(_schools);
-
+  Map<String, dynamic> toMap(School school) => school.toJson();
+  
+  @override
+  School fromMap(Map<String, dynamic> map, String id) {
+    final mapCopy = Map<String, dynamic>.from(map);
+    if (mapCopy['id'] == null || mapCopy['id'] != id) {
+      mapCopy['id'] = id;
+    }
+    return School.fromJson(mapCopy);
+  }
+  
+  Future<List<School>> getSchoolsByDistrict(String districtId) async {
+    final snapshot = await collection
+        .where('districtId', isEqualTo: districtId)
+        .get();
+    
+    return snapshot.docs.map((doc) => fromMap(doc.data(), doc.id)).toList();
+  }
+  
+  @override
+  Future<List<School>> getSchools() => getAll();
+  
+  @override
+  Future<School?> getSchool(String id) => getById(id);
+  
   @override
   Future<void> addSchool(School school) async {
-    _schools.add(school);
+    await add(school);
   }
-
+  
   @override
   Future<void> updateSchool(School school) async {
-    final index = _schools.indexWhere((s) => s.id == school.id);
-    if (index != -1) {
-      _schools[index] = school;
-    }
+    await update(school.id, school);
   }
-
+  
   @override
   Future<void> deleteSchool(String id) async {
-    _schools.removeWhere((school) => school.id == id);
+    await delete(id);
   }
 }

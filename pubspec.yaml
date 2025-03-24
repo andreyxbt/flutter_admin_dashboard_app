@@ -18,6 +18,10 @@ dependencies:
   firebase_core: ^2.27.1
   firebase_auth: ^4.17.9
   google_sign_in: ^6.2.1
+  cloud_firestore: ^4.15.9
+  firebase_storage: ^11.6.10
+  connectivity_plus: ^5.0.2
+  internet_connection_checker: ^1.0.0+1
 
 dev_dependencies:
   flutter_test:
