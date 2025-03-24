@@ -2,6 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_storage/firebase_storage.dart';
+import 'package:firebase_database/firebase_database.dart';
+import 'package:flutter/foundation.dart';
+import 'config/firebase_config.dart';
 import 'models/navigation_item.dart';
 import 'ui/views/sidebar_component.dart';
 import 'ui/screens/schools_screen.dart';
@@ -16,15 +22,26 @@ import 'widgets/auth_wrapper.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
-    options: const FirebaseOptions(
-      apiKey: "YOUR-API-KEY",
-      authDomain: "YOUR-AUTH-DOMAIN",
-      projectId: "YOUR-PROJECT-ID",
-      storageBucket: "YOUR-STORAGE-BUCKET",
-      messagingSenderId: "YOUR-SENDER-ID",
-      appId: "YOUR-APP-ID",
+    options: FirebaseOptions(
+      apiKey: FirebaseConfig.apiKey,
+      authDomain: FirebaseConfig.authDomain,
+      projectId: FirebaseConfig.projectId,
+      storageBucket: FirebaseConfig.storageBucket,
+      messagingSenderId: FirebaseConfig.messagingSenderId,
+      appId: FirebaseConfig.appId,
     ),
   );
+
+  // Connect to Firebase emulators in debug mode
+  if (kDebugMode) {
+    try {
+      await FirebaseAuth.instance.useAuthEmulator('localhost', 9099);
+      print('Connected to Firebase emulators');
+    } catch (e) {
+      print('Failed to connect to emulators: $e');
+    }
+  }
+
   final prefs = await SharedPreferences.getInstance();
   final prefsService = SharedPreferencesService(prefs);
   
@@ -81,10 +98,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
         return 'Teachers';
       case NavigationItem.contentDirectors:
         return 'Content Directors';
-      case NavigationItem.courses:
-        return 'Courses';
-      case NavigationItem.assignments:
-        return 'Assignments';
       case NavigationItem.schools:
         return 'Schools';
       case NavigationItem.pdCompanies:
@@ -102,10 +115,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
         return 'Manage teachers and their assignments';
       case NavigationItem.contentDirectors:
         return 'Manage content directors and their courses';
-      case NavigationItem.courses:
-        return 'Browse and manage courses';
-      case NavigationItem.assignments:
-        return 'View and manage assignments';
       case NavigationItem.schools:
         return 'Manage schools in the system';
       case NavigationItem.pdCompanies:

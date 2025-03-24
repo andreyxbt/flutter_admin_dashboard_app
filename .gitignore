@@ -43,3 +43,18 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Existing Flutter ignores...
+
+# Firebase configuration
+lib/config/firebase_config.dart
+
+# Firebase local emulator files
+database-debug.log
+firebase-debug.log
+firestore-debug.log
+ui-debug.log
+
+# Environment files
+.env*
+!.env.template

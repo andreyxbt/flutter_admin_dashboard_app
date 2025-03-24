@@ -7,6 +7,32 @@ class LoginScreen extends StatelessWidget {
 
   LoginScreen({super.key});
 
+  void _showErrorDialog(BuildContext context, String message) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Authentication Error'),
+        content: Text(message),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('OK'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showLoadingDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const Center(
+        child: CircularProgressIndicator(),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -33,9 +59,39 @@ class LoginScreen extends StatelessWidget {
                   elevation: 2,
                 ),
                 onPressed: () async {
-                  final credential = await _authService.signInWithGoogle();
-                  if (credential != null && context.mounted) {
-                    Navigator.of(context).pushReplacementNamed('/dashboard');
+                  try {
+                    _showLoadingDialog(context);
+                    final credential = await _authService.signInWithGoogle();
+                    
+                    if (context.mounted) {
+                      Navigator.of(context).pop(); // Dismiss loading dialog
+                      
+                      if (credential != null) {
+                        // Show success snackbar
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('Welcome, ${credential.user?.displayName ?? "User"}!'),
+                            backgroundColor: Colors.green,
+                            duration: const Duration(seconds: 2),
+                          ),
+                        );
+                        
+                        Navigator.of(context).pushReplacementNamed('/dashboard');
+                      } else {
+                        _showErrorDialog(
+                          context,
+                          'Sign in was cancelled or failed. Please try again.',
+                        );
+                      }
+                    }
+                  } catch (e) {
+                    if (context.mounted) {
+                      Navigator.of(context).pop(); // Dismiss loading dialog
+                      _showErrorDialog(
+                        context,
+                        'An error occurred during sign in: ${e.toString()}',
+                      );
+                    }
                   }
                 },
                 child: Row(
