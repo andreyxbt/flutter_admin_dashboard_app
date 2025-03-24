@@ -3,11 +3,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_storage/firebase_storage.dart';
-import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/foundation.dart';
-import 'config/firebase_config.dart';
+import 'firebase_options.dart';
 import 'models/navigation_item.dart';
 import 'ui/views/sidebar_component.dart';
 import 'ui/screens/schools_screen.dart';
@@ -22,14 +19,7 @@ import 'widgets/auth_wrapper.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
-    options: FirebaseOptions(
-      apiKey: FirebaseConfig.apiKey,
-      authDomain: FirebaseConfig.authDomain,
-      projectId: FirebaseConfig.projectId,
-      storageBucket: FirebaseConfig.storageBucket,
-      messagingSenderId: FirebaseConfig.messagingSenderId,
-      appId: FirebaseConfig.appId,
-    ),
+    options: DefaultFirebaseOptions.currentPlatform,
   );
 
   // Connect to Firebase emulators in debug mode

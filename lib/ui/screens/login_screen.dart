@@ -2,12 +2,18 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import '../../services/auth_service.dart';
 
-class LoginScreen extends StatelessWidget {
+class LoginScreen extends StatefulWidget {
+  const LoginScreen({super.key});
+
+  @override
+  State<LoginScreen> createState() => _LoginScreenState();
+}
+
+class _LoginScreenState extends State<LoginScreen> {
   final AuthService _authService = AuthService();
+  bool _isLoading = false;
 
-  LoginScreen({super.key});
-
-  void _showErrorDialog(BuildContext context, String message) {
+  void _showErrorDialog(String message) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -23,14 +29,41 @@ class LoginScreen extends StatelessWidget {
     );
   }
 
-  void _showLoadingDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) => const Center(
-        child: CircularProgressIndicator(),
-      ),
-    );
+  Future<void> _handleSignIn() async {
+    // Set loading state
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      final credential = await _authService.signInWithGoogle();
+      
+      // Check if we're still mounted before updating state
+      if (!mounted) return;
+
+      // Clear loading state
+      setState(() {
+        _isLoading = false;
+      });
+
+      if (credential == null) {
+        _showErrorDialog('Sign in was cancelled or failed. Please try again.');
+      }
+      // If successful, AuthWrapper will automatically navigate
+      
+    } catch (e) {
+      print('Login error: $e');
+      
+      // Check if we're still mounted before updating state
+      if (!mounted) return;
+
+      // Clear loading state
+      setState(() {
+        _isLoading = false;
+      });
+
+      _showErrorDialog('An error occurred during sign in: ${e.toString()}');
+    }
   }
 
   @override
@@ -51,67 +84,36 @@ class LoginScreen extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 30),
-              ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                  backgroundColor: Colors.white,
-                  foregroundColor: Colors.black87,
-                  elevation: 2,
-                ),
-                onPressed: () async {
-                  try {
-                    _showLoadingDialog(context);
-                    final credential = await _authService.signInWithGoogle();
-                    
-                    if (context.mounted) {
-                      Navigator.of(context).pop(); // Dismiss loading dialog
-                      
-                      if (credential != null) {
-                        // Show success snackbar
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text('Welcome, ${credential.user?.displayName ?? "User"}!'),
-                            backgroundColor: Colors.green,
-                            duration: const Duration(seconds: 2),
-                          ),
-                        );
-                        
-                        Navigator.of(context).pushReplacementNamed('/dashboard');
-                      } else {
-                        _showErrorDialog(
-                          context,
-                          'Sign in was cancelled or failed. Please try again.',
-                        );
-                      }
-                    }
-                  } catch (e) {
-                    if (context.mounted) {
-                      Navigator.of(context).pop(); // Dismiss loading dialog
-                      _showErrorDialog(
-                        context,
-                        'An error occurred during sign in: ${e.toString()}',
-                      );
-                    }
-                  }
-                },
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    SizedBox(
-                      width: 24,
-                      height: 24,
-                      child: SvgPicture.asset(
-                        'assets/icons/google_g_logo.svg',
-                        width: 24,
-                        height: 24,
-                        colorFilter: null, // Ensure original colors are preserved
-                      ),
+              
+              // Show either loading indicator or login button
+              _isLoading
+                ? const CircularProgressIndicator()
+                : ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                      backgroundColor: Colors.white,
+                      foregroundColor: Colors.black87,
+                      elevation: 2,
                     ),
-                    const SizedBox(width: 16),
-                    const Text('Sign in with Google'),
-                  ],
-                ),
-              ),
+                    onPressed: _handleSignIn,
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        SizedBox(
+                          width: 24,
+                          height: 24,
+                          child: SvgPicture.asset(
+                            'assets/icons/google_g_logo.svg',
+                            width: 24,
+                            height: 24,
+                            colorFilter: null,
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        const Text('Sign in with Google'),
+                      ],
+                    ),
+                  ),
             ],
           ),
         ),
