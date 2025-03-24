@@ -14,7 +14,9 @@ import 'ui/screens/content_directors_screen.dart';
 import 'ui/screens/placeholder_screen.dart';
 import 'ui/screens/login_screen.dart';
 import 'services/shared_preferences_service.dart';
+import 'services/auth_service.dart';
 import 'widgets/auth_wrapper.dart';
+import 'widgets/user_profile_widget.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -72,6 +74,7 @@ class DashboardScreen extends StatefulWidget {
 }
 
 class _DashboardScreenState extends State<DashboardScreen> {
+  final AuthService _authService = AuthService();
   NavigationItem _selectedItem = NavigationItem.dashboard;
 
   void _onNavigationChanged(NavigationItem item) {
@@ -139,6 +142,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final User? currentUser = FirebaseAuth.instance.currentUser;
+    
+    if (currentUser == null) {
+      // If user is not logged in, AuthWrapper should handle this,
+      // but just in case we'll return an empty container
+      return Container();
+    }
+    
     return Scaffold(
       body: Row(
         children: [
@@ -150,30 +161,58 @@ class _DashboardScreenState extends State<DashboardScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Padding(
-                  padding: const EdgeInsets.all(32),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        _getTitle(_selectedItem),
-                        style: const TextStyle(
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold,
-                        ),
+                // Header with title and user profile
+                Container(
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.05),
+                        blurRadius: 5,
+                        spreadRadius: 1,
                       ),
-                      const SizedBox(height: 8),
-                      Text(
-                        _getSubtitle(_selectedItem),
-                        style: const TextStyle(
-                          fontSize: 14,
-                          color: Color(0xFF64748B),
+                    ],
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            _getTitle(_selectedItem),
+                            style: const TextStyle(
+                              fontSize: 24,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            _getSubtitle(_selectedItem),
+                            style: const TextStyle(
+                              fontSize: 14,
+                              color: Color(0xFF64748B),
+                            ),
+                          ),
+                        ],
+                      ),
+                      // User profile widget
+                      ConstrainedBox(
+                        constraints: const BoxConstraints(maxWidth: 300),
+                        child: UserProfileWidget(
+                          user: currentUser,
+                          authService: _authService,
                         ),
                       ),
                     ],
                   ),
                 ),
-                _buildContent(),
+                
+                // Main content
+                Expanded(
+                  child: _buildContent(),
+                ),
               ],
             ),
           ),
