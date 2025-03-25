@@ -11,7 +11,6 @@ abstract class SchoolRepository implements BaseRepository<School> {
   Future<String> addSchool(School school);
   Future<void> updateSchool(School school);
   Future<void> deleteSchool(String id);
-  Future<List<School>> getSchoolsByDistrict(String districtId);
 }
 
 class PersistentSchoolRepository implements SchoolRepository {
@@ -107,16 +106,6 @@ class PersistentSchoolRepository implements SchoolRepository {
   }
 
   @override
-  Future<List<School>> getSchoolsByDistrict(String districtId) async {
-    try {
-      return await _firebaseRepo.getSchoolsByDistrict(districtId);
-    } catch (e) {
-      await _ensureInitialized();
-      return _cachedSchools.where((school) => school.districtId == districtId).toList();
-    }
-  }
-
-  @override
   Future<void> clearCache() async {
     await _prefsService.remove(_storageKey);
     _cachedSchools.clear();
@@ -162,13 +151,7 @@ class FirestoreSchoolRepository extends FirebaseRepository<School> implements Sc
     return School.fromJson(mapCopy);
   }
   
-  Future<List<School>> getSchoolsByDistrict(String districtId) async {
-    final snapshot = await collection
-        .where('districtId', isEqualTo: districtId)
-        .get();
-    
-    return snapshot.docs.map((doc) => fromMap(doc.data(), doc.id)).toList();
-  }
+
   
   @override
   Future<List<School>> getSchools() => getAll();
@@ -177,8 +160,8 @@ class FirestoreSchoolRepository extends FirebaseRepository<School> implements Sc
   Future<School?> getSchool(String id) => getById(id);
   
   @override
-  Future<void> addSchool(School school) async {
-    await add(school);
+  Future<String> addSchool(School school) async {
+    return add(school);
   }
   
   @override

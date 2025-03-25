@@ -15,6 +15,7 @@ import 'ui/screens/placeholder_screen.dart';
 import 'ui/screens/login_screen.dart';
 import 'services/shared_preferences_service.dart';
 import 'services/auth_service.dart';
+import 'repositories/repository_provider.dart';
 import 'widgets/auth_wrapper.dart';
 import 'widgets/user_profile_widget.dart';
 
@@ -36,10 +37,18 @@ void main() async {
 
   final prefs = await SharedPreferences.getInstance();
   final prefsService = SharedPreferencesService(prefs);
+  final repositoryProvider = RepositoryProvider(prefsService);
   
   runApp(
-    Provider<SharedPreferencesService>.value(
-      value: prefsService,
+    MultiProvider(
+      providers: [
+        Provider<SharedPreferencesService>.value(
+          value: prefsService,
+        ),
+        Provider<RepositoryProvider>.value(
+          value: repositoryProvider,
+        ),
+      ],
       child: const MyApp(),
     ),
   );
@@ -58,8 +67,8 @@ class MyApp extends StatelessWidget {
       ),
       initialRoute: '/',
       routes: {
-        '/': (context) => AuthWrapper(child: const DashboardScreen()),
-        '/login': (context) => LoginScreen(),
+        '/': (context) => const AuthWrapper(child: DashboardScreen()),
+        '/login': (context) => const LoginScreen(),
         '/dashboard': (context) => const DashboardScreen(),
       },
     );

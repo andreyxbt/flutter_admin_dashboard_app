@@ -4,7 +4,7 @@ import 'package:flutter_admin_dashboard_app/ui/views/add_organization_dialog.dar
 import 'package:provider/provider.dart';
 import '../../models/school_model.dart';
 import '../../repositories/school_repository.dart';
-import '../../services/shared_preferences_service.dart';
+import '../../repositories/repository_provider.dart';
 import '../widgets/search_bar_component.dart';
 import '../views/schools_table_component.dart';
 
@@ -16,12 +16,33 @@ class SchoolsScreen extends StatefulWidget {
 }
 
 class _SchoolsScreenState extends State<SchoolsScreen> {
+  late final SchoolRepository _schoolRepository;
+  bool _isLoading = true;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_isLoading) {
+      final repositoryProvider = Provider.of<RepositoryProvider>(context, listen: false);
+      _schoolRepository = repositoryProvider.schoolRepository;
+      _initializeData();
+    }
+  }
+
+  Future<void> _initializeData() async {
+    setState(() {
+      _isLoading = false;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
-    final prefsService = Provider.of<SharedPreferencesService>(context);
-    
+    if (_isLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
     return ChangeNotifierProvider(
-      create: (_) => SchoolModel(FirestoreSchoolRepository(prefsService)),
+      create: (_) => SchoolModel(_schoolRepository),
       child: Consumer<SchoolModel>(
         builder: (context, model, child) {
           return Column(

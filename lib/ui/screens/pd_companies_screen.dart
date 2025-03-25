@@ -7,7 +7,7 @@ import '../../entities/pd_company.dart';
 import '../views/add_pd_company_dialog.dart';
 import '../views/edit_pd_company_dialog.dart';
 import '../../repositories/pd_company_repository.dart';
-import '../../services/shared_preferences_service.dart';
+import '../../repositories/repository_provider.dart';
 
 class PDCompaniesScreen extends StatefulWidget {
   const PDCompaniesScreen({super.key});
@@ -24,8 +24,8 @@ class PDCompaniesScreenState extends State<PDCompaniesScreen> {
   void didChangeDependencies() {
     super.didChangeDependencies();
     if (_isLoading) {
-      final prefsService = Provider.of<SharedPreferencesService>(context, listen: false);
-      _pdCompanyRepository = PersistentPDCompanyRepository(prefsService);
+      final repositoryProvider = Provider.of<RepositoryProvider>(context, listen: false);
+      _pdCompanyRepository = repositoryProvider.pdCompanyRepository;
       _initializeData();
     }
   }

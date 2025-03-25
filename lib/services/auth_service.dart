@@ -23,8 +23,9 @@ class AuthService {
   Future<UserCredential?> signInWithGoogle() async {
     try {
       // Special handling for emulator
+      print("------------------------");
       if (_usingEmulator) {
-        print("Using Firebase Auth Emulator for Google Sign-In");
+        print("n\"Using Firebase Auth Emulator for Google Sign-In");
         return await _signInWithGoogleEmulator();
       }
       

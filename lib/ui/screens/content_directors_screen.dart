@@ -9,7 +9,7 @@ import '../views/add_content_director_dialog.dart';
 import '../views/edit_content_director_dialog.dart';
 import '../../repositories/pd_company_repository.dart';
 import '../../repositories/content_director_repository.dart';
-import '../../services/shared_preferences_service.dart';
+import '../../repositories/repository_provider.dart';
 
 class ContentDirectorsScreen extends StatefulWidget {
   const ContentDirectorsScreen({super.key});
@@ -28,9 +28,9 @@ class ContentDirectorsScreenState extends State<ContentDirectorsScreen> {
   void didChangeDependencies() {
     super.didChangeDependencies();
     if (_isLoading) {
-      final prefsService = Provider.of<SharedPreferencesService>(context, listen: false);
-      _pdCompanyRepository = PersistentPDCompanyRepository(prefsService);
-      _contentDirectorRepository = PersistentContentDirectorRepository(prefsService);
+      final repositoryProvider = Provider.of<RepositoryProvider>(context, listen: false);
+      _pdCompanyRepository = repositoryProvider.pdCompanyRepository;
+      _contentDirectorRepository = repositoryProvider.contentDirectorRepository;
       _loadPDCompanies();
     }
   }

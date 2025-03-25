@@ -9,8 +9,8 @@ import '../views/add_teacher_dialog.dart';
 import '../views/edit_teacher_dialog.dart';
 import '../../repositories/school_repository.dart';
 import '../../repositories/teacher_repository.dart';
-import '../../services/shared_preferences_service.dart';
-import '../../repositories/persistent_teacher_repository.dart';
+import '../../repositories/repository_provider.dart';
+
 
 class TeachersScreen extends StatefulWidget {
   const TeachersScreen({super.key});
@@ -23,16 +23,15 @@ class TeachersScreenState extends State<TeachersScreen> {
   late final SchoolRepository _schoolRepository;
   late final TeacherRepository _teacherRepository;
   List<School> _schools = [];
-  bool _initialized = false;
+  bool _isLoading = true;
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    if (!_initialized) {
-      _initialized = true;
-      final prefsService = Provider.of<SharedPreferencesService>(context, listen: false);
-      _schoolRepository = PersistentSchoolRepository(prefsService);
-      _teacherRepository = PersistentTeacherRepository(prefsService);
+    if (_isLoading) {
+      final repositoryProvider = Provider.of<RepositoryProvider>(context, listen: false);
+      _schoolRepository = repositoryProvider.schoolRepository;
+      _teacherRepository = repositoryProvider.teacherRepository;
       _loadSchools();
     }
   }
@@ -41,6 +40,7 @@ class TeachersScreenState extends State<TeachersScreen> {
     final schools = await _schoolRepository.getSchools();
     setState(() {
       _schools = schools;
+      _isLoading = false;
     });
   }
 
